@@ -1,0 +1,6 @@
+/* https://community.plotly.com/t/resize-image-markdown/64054/2 */
+
+img[src*="#img"] {
+    width:100%;
+    height:auto;
+}

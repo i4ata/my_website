@@ -10,7 +10,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--range_real', nargs=2, type=float, default=(-2., 1.), help='Range of real part of c')
-    parser.add_argument('--range_im', nargs=2, type=float, default=(-1.5, 1.5), help='Range of imaginary part of c')
+    parser.add_argument('--range_imag', nargs=2, type=float, default=(-1.5, 1.5), help='Range of imaginary part of c')
     parser.add_argument('--dims', nargs=2, type=int, default=(5_000, 5_000), help='Dimensions of the resulting image (level of precision)')
     parser.add_argument('--max_iter', type=int, default=100, help='Number of iterations')
     parser.add_argument('--file', type=str, default=None, help='Filename to store the resulting image')
@@ -19,7 +19,7 @@ def parse_args() -> argparse.Namespace:
 
 def mandelbrot_set(
         range_real: Tuple[float, float] = (-2., 1.), 
-        range_im: Tuple[float, float] = (-1.5, 1.5), 
+        range_imag: Tuple[float, float] = (-1.5, 1.5), 
         dims: Tuple[float, float] = (5_000, 5_000), 
         max_iter: int = 100,
         save_all: bool = False,
@@ -35,8 +35,11 @@ def mandelbrot_set(
     """
 
     # The grid of all imaginary numbers to consider [h x w]
-    # C[x, y] = (x0 + x*delta) + (y0 + y*delta)i
-    C = np.linspace(*range_real, dims[1]) + np.linspace(*range_im, dims[0])[:, np.newaxis] * 1j
+    # C[x, y] = (x_min + x*delta) + (y_max - y*delta)i
+    C = (
+        np.linspace(range_real[0], range_real[1], dims[1]) + 
+        np.linspace(range_imag[1], range_imag[0], dims[0])[:, np.newaxis] * 1j
+    )
     
     # The resulting image to fill up
     M = np.full_like(C, fill_value=max_iter, dtype=np.uint8)
@@ -79,13 +82,13 @@ if __name__ == '__main__':
     args = parse_args()
     m = mandelbrot_set(
         range_real=args.range_real, 
-        range_im=args.range_im, 
+        range_imag=args.range_imag,
         dims=args.dims,
         max_iter=args.max_iter,
         save_all=False
     )
     
-    plt.imshow(m, extent=(*args.range_real, *args.range_im), cmap='hot')
+    plt.imshow(m, extent=(*args.range_real, *args.range_imag), cmap='hot')
     plt.title('Mandelbrot Set')
     plt.xlabel('Re(c)')
     plt.ylabel('Im(c)')

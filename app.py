@@ -1,3 +1,5 @@
+"""This script launches an interactive environment for the Mandelbro Set"""
+
 from dash import Dash, dcc, html, Input, Output, State, ctx
 import plotly.express as px
 import plotly.graph_objects as go
@@ -7,15 +9,32 @@ import pandas as pd
 
 from mandelbrot import mandelbrot_set
 
+with open('text.md') as f:
+    text = f.read()
+
+
 app = Dash(__name__)
 server = app.server
+
+# LAYOUT OF THE APP
 app.layout = html.Div([
+
+    # The text
+    dcc.Markdown(text, mathjax=True),
+    
+    # Parameters
     dcc.Input(id='height', type='number', value=500, step=10, min=100),
     dcc.Input(id='width', type='number', value=500, step=10, min=100),
     dcc.Input(id='iterations', type='number', value=50, step=10, min=10, max=100),
+    
+    # The Mandelbrot Set image as a heatmap
     dcc.Loading(id='loading', children=dcc.Graph(id='heatmap')),
+    
+    # Buttons for generating and resetting the Mandelbrot Set heatmap
     html.Button('Generate', id='generate'),
     html.Button('Reset', id='reset'),
+
+    # The graph for the evolution of a specific number c
     html.Div(id='graph')
 ])
 
@@ -29,30 +48,43 @@ app.layout = html.Div([
     Input('reset', 'n_clicks')
 )
 def generate(height, width, iterations, data, generate, reset):
-    
+    """
+    Call to generate the Mandelbrot Set heatmap
+    """
+
+    # Just a check
     if height is None or width is None or iterations is None:
         return None
 
+    # Define the range of the set
     x_min, x_max, y_min, y_max = (
+
+        # Default. If the graph is reset or on the first call
         (-2., 1., -1.5, 1.5)
+        
         if data is None or 'autosize' in data or ctx.triggered_id == 'reset' else 
+        
+        # New range when zooming in
         (data['xaxis.range[0]'], data['xaxis.range[1]'], data['yaxis.range[0]'], data['yaxis.range[1]'])
     )
     
+    # Generate the set. Save all iterations as frames
     mandelbrot = mandelbrot_set(
         range_real=(x_min, x_max),
-        range_im=(y_min, y_max),
+        range_imag=(y_min, y_max),
         dims=(height, width),
         max_iter=iterations,
         save_all=True
     )
 
+    # Draw the heatmap
     fig = px.imshow(
         mandelbrot,
         animation_frame=0,
         x=np.linspace(x_min, x_max, width),
         y=np.linspace(y_min, y_max, height),
         aspect='equal',
+        origin='lower',
         color_continuous_scale='Hot',
         labels={'x': 'Re(c)', 'y': 'Im(c)', 'color': 'Iterations'},
         title='Mandelbrot Set Visualization',
@@ -73,8 +105,12 @@ def generate(height, width, iterations, data, generate, reset):
     Input('iterations', 'value')
 )
 def display_click_data(clickData, iterations):
+    """Call to observe the evolution of a single number c"""
+
     if clickData is None or iterations is None:
         return None
+    
+    # Generate the trajectory for the selected number
     c = complex(clickData['points'][0]['x'], clickData['points'][0]['y'])
     z, z_real, z_imag, z_magnitudes = 0, [0], [0], [0]
     for i in range(iterations):
@@ -84,6 +120,8 @@ def display_click_data(clickData, iterations):
         z_magnitude = abs(z)
         z_magnitudes.append(z_magnitude)
         if z_magnitude > 2.: break
+
+    # Plot the 3 subplots, [Re(z), Im(z), |z|]
     data = pd.DataFrame(
         {'Re(z)': z_real, 'Im(z)': z_imag, '|z|': z_magnitudes, 'Iteration': range(len(z_real))}
     )
@@ -253,5 +291,4 @@ _updatemenu = {
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-    # app.run_server()
 
