@@ -38,7 +38,7 @@ def mandelbrot_set(
     # C[x, y] = (x_min + x*delta) + (y_max - y*delta)i
     C = (
         np.linspace(range_real[0], range_real[1], dims[1]) + 
-        np.linspace(range_imag[1], range_imag[0], dims[0])[:, np.newaxis] * 1j
+        np.linspace(range_imag[0], range_imag[1], dims[0])[:, np.newaxis] * 1j
     )
     
     # The resulting image to fill up

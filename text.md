@@ -24,6 +24,20 @@ If the magintude of $z$, i.e. $|z|=\sqrt{a^2+b^2}$, shoots to infinity as we ite
 
 It is the famous Mandelbrot set! The color of pixel $(x,y)$ represents the number of iterations it took for $z$ given $c=x+yi$ to diverge. The darker the color, the quicker $z$ diverges, white colors represent the numbers in the set. The image above is in resolution $5000\times5000$ and $100$ iterations are used to generate the set. The source code is on GitHub.
 
+Some example trajectories are shown below:
+
+| Iteration | $c=-1+0i$ | $c=-0.1-0.75i$ | $c=-1-1i$ |
+|:---------:|:---------:|:--------------:|:---------:|
+|   $z_1$   |  $0+0i$   |$-0.652-0.600i$ |$-1+1i$ |
+|   $z_2$   |  $-1+0i$  |$-0.034+0.032i$ |$-1-3i$ |
+|   $z_3$   |  $0+0i$   |$-0.099-0.752i$ |$-9+5i$ |
+|   $z_4$   |  $-1+0i$  |$-0.655-0.599i$ |$55-91i$ |
+|   $z_5$   |  $0+0i$   |$-0.029+0.036i$ |$-5257-10011i$ |
+|   $z_6$   |  $-1+0i$  |$-0.100-0.752i$ |$-72584073+105255653i$ |
+| $\ldots$  | $\ldots$  |    $\ldots$    |  $\ldots$  |
+
+It can be seen that $c=-1+0i$ oscillates between 2 values, $c=-0.1-0.75i$ exhibits a chaotic behavior but still remains bounded, whereas the magnitude of $c=-1-1i$ quickly explodes to very high values.
+
 ## Code
 
 The set is generated as follows:

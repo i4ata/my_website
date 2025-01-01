@@ -12,7 +12,6 @@ from mandelbrot import mandelbrot_set
 with open('text.md') as f:
     text = f.read()
 
-
 app = Dash(__name__)
 server = app.server
 
