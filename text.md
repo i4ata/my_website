@@ -58,10 +58,10 @@ Inputs:
 - `max_iter` defines the maximum number of iterations $n$ as the membership of a number in the set is defined iteratively. The default value is $100$. Note that it is impossible to determine whether a number is in the set or not as we would need to perform infinitely many iterations. The more iterations we have, the more accurate our estimation will be. This can be experienced first-hand with the interaction in the end!
 
 Outputs:
-- The mandelbrot set as a matrix $M$ such that $M_{xy}$ is the number of iterations it takes for the magnitude of the corresponding complex number $c_{xy}$, formally defined as:
+- The mandelbrot set as a matrix $M$ of evenly spaced complex numbers such that $M_{xy}$ is the number of iterations it takes for the magnitude of the corresponding complex number $c_{xy}$, formally defined as:
 
 $$
-\text{Re}(c_{xy})=x_{\min}+\frac{x_{\max}-x}{w}, \quad \text{Im}(c_{xy})=y_{\min}+\frac{y_{\max}-y}{h},
+\text{Re}(c_{xy})=x_{\min}+x\frac{x_{\max}-x_{\min}}{w-1}, \quad \text{Im}(c_{xy})=y_{\min}+\frac{y_{\max}-y_{\min}}{h-1},
 $$
 
 to diverge. If it does not diverge, $M_{xy}=n$.
@@ -69,7 +69,10 @@ to diverge. If it does not diverge, $M_{xy}=n$.
 Step 1: Define all numbers to consider $C$ using the definition above.
 
 ```python
-    C = np.linspace(*range_real, dims[1]) + np.linspace(*range_im, dims[0])[:, np.newaxis] * 1j
+    C = (
+        np.linspace(range_real[0], range_real[1], dims[1]) + 
+        np.linspace(range_imag[0], range_imag[1], dims[0])[:, np.newaxis] * 1j
+    )
 ```
 
 Step 2: Initialize all numbers $Z$, which would keep track of the evolution of the numbers $C$.
