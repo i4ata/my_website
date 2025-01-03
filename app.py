@@ -12,6 +12,7 @@ from mandelbrot import mandelbrot_set
 with open('text.md') as f:
     text = f.read()
 
+
 app = Dash(__name__)
 server = app.server
 
@@ -22,9 +23,18 @@ app.layout = html.Div([
     dcc.Markdown(text, mathjax=True),
     
     # Parameters
-    dcc.Input(id='height', type='number', value=500, step=10, min=100),
-    dcc.Input(id='width', type='number', value=500, step=10, min=100),
-    dcc.Input(id='iterations', type='number', value=50, step=10, min=10, max=100),
+    html.Div([
+        html.Label('Height:'), 
+        dcc.Input(id='height', type='number', value=500, step=10, min=100)
+    ]),
+    html.Div([
+        html.Label('Width: '),
+        dcc.Input(id='width', type='number', value=500, step=10, min=100)
+    ]),
+    html.Div([
+        html.Label('Maximum Iterations: '),
+        dcc.Input(id='iterations', type='number', value=50, step=10, min=10, max=100)
+    ]),
     
     # The Mandelbrot Set image as a heatmap
     dcc.Loading(id='loading', children=dcc.Graph(id='heatmap')),
@@ -64,7 +74,7 @@ def generate(height, width, iterations, data, generate, reset):
         if data is None or 'autosize' in data or ctx.triggered_id == 'reset' else 
         
         # New range when zooming in
-        (data['xaxis.range[0]'], data['xaxis.range[1]'], data['yaxis.range[0]'], data['yaxis.range[1]'])
+        (data['xaxis.range[0]'], data['xaxis.range[1]'], data['yaxis.range[1]'], data['yaxis.range[0]'])
     )
     
     # Generate the set. Save all iterations as frames
@@ -90,7 +100,7 @@ def generate(height, width, iterations, data, generate, reset):
         range_color=[0, iterations],
         contrast_rescaling='minmax'
     )
-    fig.update_layout(coloraxis_showscale=False)
+    fig.update_layout(coloraxis_showscale=False, autosize=True)
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
     
     fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
@@ -110,6 +120,7 @@ def display_click_data(clickData, iterations):
         return None
     
     # Generate the trajectory for the selected number
+    # TODO: Technically redundant to do since all trahectories are already calculated
     c = complex(clickData['points'][0]['x'], clickData['points'][0]['y'])
     z, z_real, z_imag, z_magnitudes = 0, [0], [0], [0]
     for i in range(iterations):
@@ -134,7 +145,7 @@ def _plot(c: complex, data: pd.DataFrame, iterations: int) -> go.Figure:
     hovertemplates = (
         'Iteration: %{x}<br>Re(z): %{y}<extra></extra>',
         'Iteration: %{x}<br>Im(z): %{y}<extra></extra>',
-        'Re(z): %{x}<br>Im(z): %{y}<extra></extra>'
+        'Iteration: %{pointNumber}<br>Re(z): %{x}<br>Im(z): %{y}<extra></extra>'
     )
     line = dict(color='blue')
     fig.append_trace(
