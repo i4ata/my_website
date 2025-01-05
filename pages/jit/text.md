@@ -236,6 +236,7 @@ Calculate the jacobian matrix $J$:
             
             # [<=B, 1, 2] or [<=B, 1, 3]
             predictions[not_converged_mask][:, np.newaxis]
+
         ).transpose(0, -1, -2) / h
 ```
 
@@ -291,6 +292,7 @@ That's it! This is how we can do the update in NumPy:
             
             # [<=B, 2, 1] or [<=B, 3, 1]
             error[not_converged_mask][..., np.newaxis]
+            
         ).squeeze(-1)
 ```
 
