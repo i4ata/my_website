@@ -1,6 +1,8 @@
 # Jacobian Inverse Technique & Interaction
 
-In this project I implement the [Jacobian Inverse Technique](https://en.wikipedia.org/wiki/Inverse_kinematics#The_Jacobian_inverse_technique) algorithm that is used for inverse kinematics. One can interact with it by scrolling all the way down! In the field of robotics, kinematics is the problem of finding how the links of a robot are moving in space. When doing forward kinematics, we find the location of the end effector of a chain of links given the angles of each joint connecting two links. The analytical solution is straightforward with simple trigonometry.
+In this project I implement the [Jacobian Inverse Technique](https://en.wikipedia.org/wiki/Inverse_kinematics#The_Jacobian_inverse_technique) algorithm that is used for inverse kinematics. One can interact with it by scrolling all the way down! In the field of robotics, kinematics is the problem of finding how the links of a robot are moving in space. Naturally, this is an extremely fundamental problem and is integral of any moving robotic system. It is also relevant in animation and simulations.
+
+When doing forward kinematics, we find the location of the end effector of a chain of links given the angles of each joint connecting two links. The analytical solution is straightforward with simple trigonometry.
 
 ## Forward Kinematics in 2D
 
@@ -49,7 +51,7 @@ def fk_2d(lengths: np.ndarray, angles: np.ndarray) -> np.ndarray:
     return np.stack((x,y), axis=-1)
 ```
 
-Here, the input to `fk_2d` is an array of shape $(\ldots,N)$ representing the lengths $L_i$ of the $N$ links, and another tensor of shape $(\ldots,N)$ representing the angles $\theta_i$ of each link. The function above calculates forward kinematics in a batched fashion with an arbitrary number of batched dimensions (why that is useful comes later), with the only constraint that the number of links $N$ is the same across all samples. The output is an array of shape $(\ldots,2)$ representing the resulting endpoints $(x^*,y^*)$ for each sample in the batch.
+Here, the input to `fk_2d` is an array of shape $(\ldots,N)$ representing the lengths $L_i$ of the $N$ links, and another array of shape $(\ldots,N)$ representing the angles $\theta_i$ for joint. The function above calculates forward kinematics in a batched fashion with an arbitrary number of batched dimensions (why that is useful comes later), with the only constraint that the number of links $N$ is the same across all samples. The output is an array of shape $(\ldots,2)$ representing the resulting endpoints $(x^*,y^*)$ for each sample in the batch.
 
 ## Forward Kinematics in 3D
 
@@ -94,13 +96,13 @@ def fk_3d(lengths: np.ndarray, angles: np.ndarray) -> np.ndarray:
     return np.stack((x,y,z), axis=-1)
 ```
 
-Here, the input is, again, a tensor of shape $(\ldots,N)$ representing the lengths $L_i$ of the $N$ links. However, since each link is now represented by 2 angles, the second tensor is of shape $(\ldots,2N)$ and is reshaped internally to $(\ldots,N,2)$. The function again allows for batched inputs with an arbitrary number of batched dimensions. The output is a tensor of shape $(\ldots,3)$ represting the resulting endpoints $(x^*,y^*,z^*)$. 
+Here, the input is, again, a tensor of shape $(\ldots,N)$ representing the lengths $L_i$ of the $N$ links. However, since each link is now represented by 2 angles, the second tensor is of shape $(\ldots,2N)$ and is reshaped internally to $(\ldots,N,2)$, i.e. $(\ldots, N, \langle\theta,\phi\rangle)$. The function again allows for batched inputs with an arbitrary number of batched dimensions. The output is a tensor of shape $(\ldots,3)$ represting the resulting endpoints $(x^*,y^*,z^*)$.
 
-**Note**: This is a considerable simplification of the problem since rotations of the joints are not considered. The Jacobian Inverse Technique as implemented here would still work as it is right now if rotations are included.
+**Note**: This is a considerable simplification of the problem since rotations of the joints are not considered. The Jacobian Inverse Technique as implemented here would still work as it is right now if rotations are included. This is a nice idea for a future project!
 
 ## Inverse Kinematics using the Jacobian Inverse Technique
 
-The inverse kinematics problem is to find the angles of the joints such that the endpoint of the chain is at a desired location, i.e. how should I move my arm in order to reach the carrot on the table. The analytical solution to this problem is way more involved compared to forward kinematics and its complexity increases exponentially with the number of links $N$. Since the problem quickly becomes intractable, it is often solved using numerical approximations. A simple yet powerful and flexible method is the Jacobian Inverse Technique. The algorithm and the NumPy implementation are as follows:
+The inverse kinematics problem is to find the angles of the joints such that the endpoint of the chain is at a desired location, i.e. how should I move my arm in such that the tip of my index finger reaches the carrot on the table. The analytical solution to this problem is way more involved compared to forward kinematics and its complexity increases exponentially with the number of links $N$. Since the problem quickly becomes intractable, it is often solved using numerical approximations. A simple yet powerful and flexible method is the Jacobian Inverse Technique. The algorithm and the NumPy implementation are as follows:
 
 ```python
 def JIT(
@@ -116,7 +118,7 @@ def JIT(
 The inputs are:
 
 1. `lengths`: An array of shape $(B,N)$ representing the lengths $L_i$ of the $N$ links from each of the $B$ samples in the batch.
-2. `ee_true`: An array $\xi$ of shape $(B,2)$ in the 2D case or $(B,3)$ in the 3D case, representing the desired endeffector positions for each sample in the batch.
+2. `ee_true`: An array $\xi$ of shape $(B,2)$ in the 2D case (i.e. $(B,\langle x,y \rangle)$) or $(B,3)$ in the 3D case (i.e. $(B,\langle x,y,z \rangle)$), representing the desired endeffector positions for each sample in the batch.
 3. `max_steps`: Since the method is iterative, an integer defines the maximum number of iterations.
 4. `h`: The constant $h$ which comes later.
 5. `tolerance`: The maximum allowed distance between our solution and $\xi$.
@@ -130,7 +132,7 @@ The inputs are:
     fk = fk_2d if dimensions == 2 else fk_3d
 ```
 
-Start off with a random prediction for the angles $\hat{\omega}_0$ of shape $(B,N)$ for the 2D case and $(B,2N)$ for the 3D case. In my case, each angle is uniformly sampled from the range $[-\pi,\pi]$. Let $p:\mathbb{R}^{\{N,2N\}}\to\mathbb{R}^{\{2,3\}}$ be the forward kinematics function for the corresponding number of dimensions (either `fk_2d` or `fk_3d`). The goal is to find the angles $\omega^*$ which minimize the error $||p(\omega^*)-\xi||$. Usually there are multiple solutions to the backward kinematics problem, i.e. there are multiple joint configurations $\omega^*$ which result in the desired endeffector positions $\xi$. The Jacobian Inverse Technique finds the solution that is closest to the initial random angles $\hat{\omega}_0$.
+Start off with a random prediction for the angles $\hat{\omega}_0$ of shape $(B,N)$ for the 2D case and $(B,2N)$ for the 3D case. In my case, each angle is uniformly sampled from the range $[-\pi,\pi]$. Let $p:\mathbb{R}^{\{N,2N\}}\to\mathbb{R}^{\{2,3\}}$ be the forward kinematics function for the corresponding number of dimensions (either `fk_2d` or `fk_3d`). The goal is to find the angles $\omega^*$ which minimize the error $||p(\omega^*)-\xi||$. Usually there are multiple solutions to the backward kinematics problem, i.e. there are multiple joint configurations $\omega^*$ which result in the desired endeffector position $\xi$. The Jacobian Inverse Technique finds the solution that is closest to the initial random angles $\hat{\omega}_0$.
 
 Iteratively execute the next steps:
 
@@ -140,13 +142,13 @@ Iteratively execute the next steps:
 
 ### Step 2
 
-Calculate the error $\xi - p(\hat{\omega})$, which is a matrix of shape $(B,2)$ in 2D and $(B,3)$ in 3D. Row $i$ represents the vector that points from the prediction to the ground truth for sample $i$. Its magnitude denotes the distance between the 2 points.  
+Calculate the error $\xi - p(\hat{\omega})$, which is a matrix of shape $(B,2)$ in 2D and $(B,3)$ in 3D. Row $i$ represents the vector that points from the prediction to the target for sample $i$. Its magnitude denotes the distance between the 2 points.  
 
 ```python
-        # (B, 2) or (B, 2N)
+        # (B, 2) or (B, 3)
         predictions = fk(lengths, angles)
         
-        # (B, 2) or (B, 2N)
+        # (B, 2) or (B, 3)
         error = ee_true - predictions
 ```
 
@@ -169,6 +171,8 @@ Since the algorithm is iterative, we need to define a threshold, where if the er
         # [<=B, N] or [<=B, 2N]
         unknown_angles = angles[not_converged_mask]
 ```
+
+From now on we will be looking only at them since optimizing the converged ones further is a waste of time.
 
 ### Step 4
 
@@ -203,7 +207,7 @@ Here $H$ is the matrix $hI$ defined beforehand as:
     H = h * np.eye(angles.shape[1])
 ```
 
-The variable `perturbed_angles` is a tensor of shape $(B,N,N)$ for the 2D case or $(B,2N,2N)$ for the 3D case, where the $(i,j)-th$ component is the current angles $\hat{\omega}$ for batch sample $i$ with $h$ added to its $j$-th component.
+The variable `perturbed_angles` is a tensor of shape $(B,N,N)$ for the 2D case or $(B,2N,2N)$ for the 3D case, where the $(i,j)$-th component is the current angles $\hat{\omega}$ for batch sample $i$ with $h$ added to its $j$-th component.
 
 #### Step 4.2
 
@@ -256,28 +260,19 @@ $$
 x_{i+1}\gets x_i-\frac{f(x_i)}{f^\prime(x_i)}
 $$
 
-Intuitively, we can analyze the direction of the step by considering all 4 cases:
-
-1. $f(x_i)>0, f^\prime(x_i)>0$. We decrease our guess $(x_{i+1}<x_i)$. The function is positive and increasing, meaning that we will get closer to 0 by going backwards.
-2. $f(x_i)>0, f^\prime(x_i)<0$. We increase our guess $(x_{i+1}<x_i)$. The function is positive and decreasing, meaning that we will get closer to 0 by going forwards.
-3. $f(x_i)<0, f^\prime(x_i)>0$. We increase our guess $(x_{i+1}>x_i)$. The function is negative and increasing, meaning that we will get closer to 0 by going forwards.
-4. $f(x_i)<0, f^\prime(x_i)<0$. We decrease our guess $(x_{i+1}<x_i)$. The function is negative and decreasing, meaning that we will get closer to 0 by going backwards.
-
-The step size is scaled by $\frac{1}{f^\prime(x_i)}$, i.e. the step size is inversely proportional to the derivative at our guess. If the derivative is small, i.e. the function is flat, we need to take a large step to make a difference. On the other hand, if the derivative is large, i.e. the function is steep, we need to take a small step to make the same difference. Naturally, the step itself is proportional to $f(x_i)$, which is the difference in heights of the function at our guess and the height of the desired location, which is 0.
-
-The method is usually very efficient as it takes only a few iterations to reach a guess $x^*$ such that $f(x^*)\approx0$. For finding the roots of a multidimensional function $g: \mathbb{R^n}\to\mathbb{R^m}$, the update rule of the Newton method generalizes to:
+Essentially, $x_{i+1}$ is the point where the tangent line to $f$ at $x_i$ crosses the $x$-axis, which turns out to be a very good heuristic. The method is usually very efficient as it takes only a few iterations to reach a guess $x^*$ such that $f(x^*)\approx0$. For finding the roots of a multidimensional function $g: \mathbb{R^n}\to\mathbb{R^m}$, the update rule of the Newton method generalizes to:
 
 $$
 x_{i+1}\gets x_i - J^+g(x_i)
 $$
 
-Here $J^+$ is the pseudoinverse of $g$'s Jacobian matrix. Intuitively, "dividing" by a matrix entails multiplying by the inverse. The iterations result in a prediction $x^*$ such that $f(x^*)\approx\mathbf{0}$, i.e. all $m$ components of $f(x_i)$ are simultaneously swerved to 0. We can confirm that the Jacobian Inverse update step is identical. Our fundamental aim is to find the angles $\omega^*$ such that $\xi=p(\omega^*)$, which is the same as $\xi-p(\omega^*)=\mathbf{0}$. Therefore, we can simply substitude $x=\hat{\omega}$ and $g(\hat{\omega})=\xi-p(\hat{\omega})$ in the Newton's method. Naturally, $J_{(g)}=-J_{(p)}$ since $\xi$ is not dependent on $\omega$ and $g$ applies $p$ with a minus sign. This explains the flipped sign in the update step and justifies our use of the same Jacobian matrix as calculated before. Therefore, the update step is exactly the same as the update step in the Newton's method. This is how it can be done with NumPy:
+Here $J^+$ is the pseudoinverse of $g$'s Jacobian matrix. Intuitively, "dividing" by a matrix entails multiplying by the inverse. The iterations result in a prediction $x^*$ such that $f(x^*)\approx\mathbf{0}$, i.e. all $m$ components of $f(x_i)$ are simultaneously swerved to 0.
 
 We can prove that the update steps in the Jacobian Inverse Technique and Newton's method are identical:
 
 - Our fundamental goal is to find angles $\omega^*$ such that $p(\omega^*)=\xi$, which is the same as $p(\omega^*)-\xi=\mathbf{0}$.
-- Therefore, we can substitude $x=\hat{\omega}$ and $g(\hat{\omega})=\xi-p(\hat{\omega})$ in the Newton's method definition.
-- Naturally, the Jacobian of $g$ is equal to the negative Jacobian of $p$. That is because the sum rule allows us to discard $\xi$ since the derivative of $\xi$ w.r.t. $\hat{\omega}$ is $\mathbf{0}$, which means that we are left with $g^\prime(\hat{\omega})=-p^\prime(\hat{\omega})$.
+- Therefore, we can substitute $x=\hat{\omega}$ and $g(\hat{\omega})=\xi-p(\hat{\omega})$ in the Newton's method definition.
+- Naturally, the Jacobian of $g$ is equal to the negative Jacobian of $p$. That is because the sum rule allows us to discard $\xi$ since $\xi$ is not dependent on $\hat{\omega}$, which means that we are left with $g^\prime(\hat{\omega})=-p^\prime(\hat{\omega})$.
 - Using the property of the pseudoinverse $(kA)^+=k^{-1}A^+$, we can directly infer that $(-A)^+=-A^+$. Therefore, the pseudoinverse of $g$'s Jacobian is the negative pseudoinverse of $p$'s Jacobian. We already calculated the Jacobian of $p$, so we can simply substitute it and flip the sign of the update.
 
 That's it! This is how we can do the update in NumPy:

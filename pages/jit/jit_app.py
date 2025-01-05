@@ -105,7 +105,7 @@ def generate(n_clicks, lengths, ee_true):
     table = dash_table.DataTable(data=data, columns=columns)
     
     return (
-        dcc.Graph(figure=fig), 
+        dcc.Graph(figure=fig, id=f'graph_{len(ee_true)}d'), 
         html.Div([
             html.Label('Found optimal angles (in radians)'),
             table
@@ -277,8 +277,7 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
     fig.update_layout(
         scene=dict(
             xaxis=axes, yaxis=axes, zaxis=axes, 
-            aspectratio={'x':1, 'y':1, 'z':1},
-            camera = dict(eye=dict(x=1.5, y=1.5, z=1.5))
+            aspectratio={'x':1, 'y':1, 'z':1}
         ),
         autosize=True,
         height=800,
