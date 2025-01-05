@@ -3,7 +3,6 @@
 import numpy as np
 from tqdm.auto import tqdm
 import argparse
-from typing import Optional
 
 def parse_args():
     

@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import math
 
 from pages.jit.jit import fk_2d, fk_3d, JIT
+from utils import slider, updatemenu
 
 with open('pages/jit/text.md') as f:
     text = f.read()
@@ -75,40 +76,46 @@ def generate(n_clicks, lengths, ee_true):
     if n_clicks is None:
         return None, None
     
-    fk = fk_2d if len(ee_true) == 2 else fk_3d
+    n = len(lengths)
+    d = len(ee_true)
+    fk = fk_2d if d == 2 else fk_3d
     lengths = np.array(lengths)[np.newaxis]
     predicted_angles = JIT(lengths, np.array(ee_true)[np.newaxis], save_all=True)
     trajectories = fk(lengths, angles=predicted_angles, save_all=True)
 
     fig = (
         _plot_2d(x=trajectories[0], y=trajectories[1], ee_true=ee_true)
-        if len(ee_true) == 2 else
+        if d == 2 else
         _plot_3d(x=trajectories[0], y=trajectories[1], z=trajectories[2], ee_true=ee_true)
     )
 
+    updatemenu['buttons'][0]['args'][1] = {
+        'frame': {'duration': 1000},
+        'mode': 'next', 
+        'transition': {'duration': 500, 'easing': 'linear'}
+    }
     fig.update_layout(
         showlegend=False,
-        updatemenus=[_updatemenu],
-        sliders=[_slider(len(trajectories[0]))]
+        updatemenus=[updatemenu],
+        sliders=[slider(len(trajectories[0]))]
     )
 
-    columns = [{'name': col, 'id': col} for col in ['Angle'] + [f'Joint {i}' for i in range(len(lengths[0]))]]
-    if len(ee_true) == 2:
+    columns = [{'name': col, 'id': col} for col in ['Angle'] + [f'Joint {i}' for i in range(n)]]
+    if d == 2:
         angles_2d = predicted_angles[-1]
-        data = [{'Angle': 'θ'} | {f'Joint {i}': round(angles_2d[i], 4) for i in range(len(lengths[0]))}]
+        data = [{'Angle': 'θ'} | {f'Joint {i}': round(angles_2d[i], 4) for i in range(n)}]
     else:
         angles_3d = predicted_angles[-1].reshape(-1, 2)
         data = [
-            {'Angle': 'θ'} | {f'Joint {i}': round(angles_3d[i, 0], 4) for i in range(len(lengths[0]))},
-            {'Angle': 'φ'} | {f'Joint {i}': round(angles_3d[i, 1], 4) for i in range(len(lengths[0]))}
+            {'Angle': 'θ'} | {f'Joint {i}': round(angles_3d[i, 0], 4) for i in range(n)},
+            {'Angle': 'φ'} | {f'Joint {i}': round(angles_3d[i, 1], 4) for i in range(n)}
         ]
-    table = dash_table.DataTable(data=data, columns=columns)
-    
+
     return (
-        dcc.Graph(figure=fig, id=f'graph_{len(ee_true)}d'), 
+        dcc.Graph(figure=fig, id=f'graph_{d}d'), 
         html.Div([
             html.Label('Found optimal angles (in radians)'),
-            table
+            dash_table.DataTable(data=data, columns=columns)
         ])
     )
 
@@ -117,25 +124,17 @@ _hover_suffix = '<br>x: %{x}<br>y: %{y}<extra></extra>'
 def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
     
     n_joints = x.shape[1] - 1
+    n_iterations = len(x)
+    errors = np.linalg.norm(
+        np.stack((x[:, -1], y[:, -1]), axis=1) - np.array(ee_true), 
+        axis=1
+    )
+
     fig = go.Figure()
-    errors = np.linalg.norm(np.stack((x[:, -1], y[:, -1]), axis=1) - np.array(ee_true), axis=1)
 
-    marker_target = dict(
-        color='orange',
-        symbol='star',
-        size=15
-    )
-
-    marker_start=dict(
-        color='black',
-        symbol='x',
-        size=10
-    )
-
-    marker_end = dict(
-        color='red',
-        size=10
-    )
+    marker_target = {'color': 'orange', 'symbol': 'star', 'size': 15}
+    marker_start = {'color': 'black', 'symbol': 'x', 'size': 10}
+    marker_end = {'color': 'red', 'size': 10}
 
     fig.add_traces([
         *[
@@ -184,7 +183,7 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
         autosize=True,
         height=800,
         width=800,
-        title={'text': f'Iterations: {len(x)} | Error: {errors[-1]:.4f}'}
+        title={'text': f'Iterations: {n_iterations} | Error: {errors[-1]:.4f}'}
     )
 
     return fig
@@ -192,28 +191,17 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
 def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) -> go.Figure:
     
     n_joints = x.shape[1] - 1
-    fig = go.Figure()
+    n_iterations = len(x)
     errors = np.linalg.norm(
         np.stack((x[:, -1], y[:, -1], z[:, -1]), axis=1) - np.array(ee_true), 
         axis=1
     )
-
-    marker_target = dict(
-        color='orange',
-        symbol='diamond',
-        size=5
-    )
-
-    marker_start=dict(
-        color='black',
-        symbol='x',
-        size=5
-    )
-
-    marker_end = dict(
-        color='red',
-        size=5
-    )
+    
+    fig = go.Figure()
+    
+    marker_target = {'color': 'orange', 'symbol': 'diamond', 'size': 5}
+    marker_start = {'color': 'black', 'symbol': 'x', 'size': 5}
+    marker_end = {'color': 'red', 'size': 5}
 
     fig.add_traces([
         *[
@@ -263,97 +251,23 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
             traces=list(range(n_joints + 1)), name=str(frame), 
             layout={'title': f'Iteration: {frame} | Error: {errors[frame]:.4f}'}
         )
-        for frame in range(len(x))
+        for frame in range(n_iterations)
     ]
 
     axis_range = min(x.min(), y.min(), z.min()) - .2, max(x.max(), y.max(), z.max()) + .2
     tick_vals = np.linspace(math.floor(axis_range[0]), math.ceil(axis_range[1]), 5)
     tick_text = list(map(str, tick_vals))
-    axes = dict(
-        range=axis_range,
-        tickvals=tick_vals,
-        ticktext=tick_text
-    )
+    axes = {'range': axis_range, 'tickvals': tick_vals, 'ticktext': tick_text}
+
     fig.update_layout(
-        scene=dict(
-            xaxis=axes, yaxis=axes, zaxis=axes, 
-            aspectratio={'x':1, 'y':1, 'z':1}
-        ),
+        scene={
+            'xaxis': axes, 'yaxis': axes, 'zaxis': axes, 
+            'aspectratio': {'x':1, 'y':1, 'z':1}
+        },
         autosize=True,
         height=800,
         width=800,
-        title={'text': f'Iterations: {len(x)} | Error: {errors[-1]:.4f}'}
+        title={'text': f'Iterations: {n_iterations} | Error: {errors[-1]:.4f}'}
     )
 
     return fig
-
-def _slider(n: int) -> dict:
-    return {
-        'active': 0,
-        'currentvalue': {'prefix': 'Iteration: '},
-        'len': 0.9,
-        'pad': {'b': 10, 't': 60},
-        'steps': [
-            {
-                'args': [
-                    [str(i)],  
-                    {
-                        'frame': {'duration': 0, 'redraw': True}, 
-                        'mode': 'immediate',
-                        'fromcurrent': True,
-                        'transition': {'duration': 0, 'easing': 'linear'}
-                    }
-                ],
-                'label': str(i),
-                'method': 'animate',
-            }
-            for i in range(n)
-        ],
-        'active': 0,
-        'x': 0.1,
-        'xanchor': 'left',
-        'y': 0,
-        'yanchor': 'top'
-    }
-
-_play_button = {
-    'label': 'Play', 
-    'method': 'animate',
-    'args': [
-        None, 
-        {
-            # CHANGED TO 750 TO AVOID BUG WHERE THE ANIMATION GOES FROM THE FIRST FRAME TO THE LAST
-            # PLAY AROUND WITH THE TIMING MAYBE TO ENSURE THE SMOOTHNESS TODO
-            'frame': {'duration': 1000},#, 'redraw': True},
-            'mode': 'next', 
-            # 'fromcurrent': True,
-            'transition': {'duration': 500, 'easing': 'linear'}
-        }
-    ]
-}
-
-_pause_button = {
-    'label': 'Pause',
-    'method': 'animate',
-    'args': [
-        [None], 
-        {
-            'frame': {'duration': 0, 'redraw': True},
-            'mode': 'immediate', 
-            'fromcurrent': True, 
-            'transition': {'duration': 0, 'easing': 'linear'}
-        }
-    ]
-}
-
-_updatemenu = {
-    'buttons': [_play_button, _pause_button],
-    'direction': 'left',
-    'pad': {'r': 10, 't': 70},
-    'showactive': False,
-    'type': 'buttons',
-    'x': 0.1,
-    'xanchor': 'right',
-    'y': 0,
-    'yanchor': 'top'            
-}

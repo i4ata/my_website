@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from pages.mandelbrot.mandelbrot import mandelbrot_set
+from utils import slider, updatemenu
 
 with open('pages/mandelbrot/text.md') as f:
     text = f.read()
@@ -45,6 +46,7 @@ layout = html.Div([
     html.Div(id='graph_evolution')
 ])
 
+# TODO: This callback is called twice when loading the page for the first time
 @callback(
     Output('heatmap', 'figure'),
     State('height', 'value'),
@@ -99,7 +101,6 @@ def generate(height, width, iterations, data, generate, reset):
         contrast_rescaling='minmax'
     )
     fig.update_layout(coloraxis_showscale=False, autosize=True)
-    fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
     
     fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
     fig.layout.updatemenus[0]['buttons'][0]['label'] = 'Play'
@@ -111,32 +112,37 @@ def generate(height, width, iterations, data, generate, reset):
     Input('heatmap', 'clickData'),
     Input('iterations', 'value')
 )
-def display_click_data(clickData, iterations):
+def click_on_image(clickData, iterations):
     """Call to observe the evolution of a single number c"""
 
     if clickData is None or iterations is None:
         return None
     
     # Generate the trajectory for the selected number
-    # TODO: Technically redundant to do since all trahectories are already calculated
+    # TODO: Technically redundant to do since all trajectories are already calculated
     c = complex(clickData['points'][0]['x'], clickData['points'][0]['y'])
     z, z_real, z_imag, z_magnitudes = 0, [0], [0], [0]
     for i in range(iterations):
         z = z ** 2 + c
+        z_magnitude = abs(z)
+
         z_real.append(z.real)
         z_imag.append(z.imag)
-        z_magnitude = abs(z)
         z_magnitudes.append(z_magnitude)
         if z_magnitude > 2.: break
 
     # Plot the 3 subplots, [Re(z), Im(z), |z|]
-    data = pd.DataFrame(
-        {'Re(z)': z_real, 'Im(z)': z_imag, '|z|': z_magnitudes, 'Iteration': range(len(z_real))}
-    )
+    data = pd.DataFrame({
+        'Re(z)': z_real, 
+        'Im(z)': z_imag, 
+        '|z|': z_magnitudes, 
+        'Iteration': range(len(z_real))
+    })
     fig = _plot(c, data, iterations)
     return dcc.Graph(id=f'graph_{c}', figure=fig)
 
 def _plot(c: complex, data: pd.DataFrame, iterations: int) -> go.Figure:
+    
     fig = make_subplots(cols=3)
     
     # DRAW LINES + CIRCLE
@@ -191,19 +197,18 @@ def _plot(c: complex, data: pd.DataFrame, iterations: int) -> go.Figure:
 
     # ANIMATION
     marker = dict(color='orange', size=10)
-    fig.append_trace(
-        go.Scatter(x=[0], y=[0], mode='markers', marker=marker, hovertemplate=hovertemplates[0]), 
-        row=1, col=1
-    )
-    fig.append_trace(
-        go.Scatter(x=[0], y=[0], mode='markers', marker=marker, hovertemplate=hovertemplates[1]), 
-        row=1, col=2
-    )
-    fig.append_trace(
-        go.Scatter(x=[0], y=[0], mode='markers', marker=marker, hovertemplate=hovertemplates[2]), 
-        row=1, col=3
-    )
     
+    fig.add_traces(
+        data=[
+            go.Scatter(
+                x=[0], y=[0], mode='markers', marker=marker, 
+                hovertemplate=hovertemplates[subplot_index]
+            )
+            for subplot_index in range(3)
+        ],
+        rows=1, cols=[1,2,3]
+    )
+     
     fig.frames = [
         go.Frame(
             data=[
@@ -220,79 +225,8 @@ def _plot(c: complex, data: pd.DataFrame, iterations: int) -> go.Figure:
     fig.update_layout(
         title=f'Evolution of c={c}',
         showlegend=False,
-        updatemenus=[_updatemenu],
-        sliders=[_slider(len(data))]
+        updatemenus=[updatemenu],
+        sliders=[slider(len(data))]
     )
 
     return fig
-    
-# BELOW THIS IT'S ALL DEFAULT
-
-def _slider(n: int) -> dict:
-    return {
-        'active': 0,
-        'currentvalue': {'prefix': 'Iteration: '},
-        'len': 0.9,
-        'pad': {'b': 10, 't': 60},
-        'steps': [
-            {
-                'args': [
-                    [str(i)],  
-                    {
-                        'frame': {'duration': 0, 'redraw': True}, 
-                        'mode': 'immediate',
-                        'fromcurrent': True,
-                        'transition': {'duration': 0, 'easing': 'linear'}
-                    }
-                ],
-                'label': str(i),
-                'method': 'animate',
-            }
-            for i in range(n)
-        ],
-        'active': 0,
-        'x': 0.1,
-        'xanchor': 'left',
-        'y': 0,
-        'yanchor': 'top'
-    }
-
-_play_button = {
-    'label': 'Play', 
-    'method': 'animate',
-    'args': [
-        None, 
-        {
-            'frame': {'duration': 500, 'redraw': True},
-            'mode': 'immediate', 
-            'fromcurrent': True, 
-            'transition': {'duration': 500, 'easing': 'linear'}
-        }
-    ]
-}
-
-_pause_button = {
-    'label': 'Pause',
-    'method': 'animate',
-    'args': [
-        [None], 
-        {
-            'frame': {'duration': 0, 'redraw': True},
-            'mode': 'immediate', 
-            'fromcurrent': True, 
-            'transition': {'duration': 0, 'easing': 'linear'}
-        }
-    ]
-}
-
-_updatemenu = {
-    'buttons': [_play_button, _pause_button],
-    'direction': 'left',
-    'pad': {'r': 10, 't': 70},
-    'showactive': False,
-    'type': 'buttons',
-    'x': 0.1,
-    'xanchor': 'right',
-    'y': 0,
-    'yanchor': 'top'            
-}
