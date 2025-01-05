@@ -1,11 +1,13 @@
-/* https://community.plotly.com/t/resize-image-markdown/64054/2 */
+img[src*="#jit_img"] {
+    width:40%;
+    height:auto;
+}
 
-img[src*="#img"] {
+img[src*="#mandelbrot_img"] {
     width:100%;
     height:auto;
 }
 
-/* chatgpt suggestions */
 #heatmap {
     width: 90vw;
     height: 90vh;

@@ -20,7 +20,7 @@ $$
 
 If the magintude of $z$, i.e. $|z|=\sqrt{a^2+b^2}$, shoots to infinity as we iterate, then $c$ is not a member of the set Otherwise, if it remains bounded by a certain value, then $c$ is a member of the set. Commonly, the number 2 is chosen as a threshold. That is, if at any point the magintude of $z$ exceeds 2, then $c$ is excluded from the set. This is the plot for different values of $c$ (real part on the x-axis and imaginary part on the y-axis):
 
-![](assets/image.png#img)
+![](../../assets/mandelbrot/image.png#mandelbrot_img)
 
 It is the famous Mandelbrot set! The color of pixel $(x,y)$ represents the number of iterations it took for $z$ given $c=x+yi$ to diverge. The darker the color, the quicker $z$ diverges, white colors represent the numbers in the set. The image above is in resolution $5000\times5000$ and $100$ iterations are used to generate the set. The source code is on GitHub.
 
