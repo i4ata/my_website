@@ -137,6 +137,9 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
     marker_end = {'color': 'red', 'size': 10}
 
     fig.add_traces([
+
+        # LINKS
+        # (Intentionally split from lines to do the hovering properly)
         *[
             go.Scatter(
                 x=[x[-1, joint], x[-1, joint+1]], y=[y[-1, joint], y[-1, joint+1]], 
@@ -145,6 +148,8 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
             )
             for joint in range(n_joints)
         ],
+
+        # JOINTS TODO MAYBE MAKE THEM THE SAME COLOR AS THE LINES
         *[
             go.Scatter(
                 x=[x[-1, joint]], y=[y[-1, joint]],
@@ -153,14 +158,20 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
             )
             for joint in range(1, n_joints)
         ],
+
+        # END POINT
         go.Scatter(
             x=[x[-1, -1]], y=[y[-1, -1]], name='End', mode='markers', marker=marker_end,
             hovertemplate='End' + _hover_suffix
         ),
+
+        # TARGET
         go.Scatter(
             x=[ee_true[0]], y=[ee_true[1]], name='Target', mode='markers', marker=marker_target,
             hovertemplate='Target' + _hover_suffix
         ),
+
+        # START
         go.Scatter(
             x=[0], y=[0], name='Start', mode='markers', marker=marker_start,
             hovertemplate='Joint 0' + _hover_suffix
@@ -169,6 +180,7 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
 
     fig.frames = [
         go.Frame(
+            # ANIMATE THE LINES, JOINTS, AND END
             data=[
                 go.Scatter(
                     x=[x[frame, joint], x[frame, joint+1]], 
@@ -237,16 +249,22 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
             )
             for joint in range(1, n_joints)
         ],
+
+        # END
         go.Scatter3d(
             x=[x[-1, -1]], y=[y[-1, -1]], z=[z[-1, -1]], 
             name='End', mode='markers', marker=marker_end,
             hovertemplate='End' + _hover_suffix
         ),
+
+        # TARGET
         go.Scatter3d(
             x=[ee_true[0]], y=[ee_true[1]], z=[ee_true[2]], 
             name='Target', mode='markers', marker=marker_target,
             hovertemplate='Target' + _hover_suffix
         ),
+
+        # START
         go.Scatter3d(
             x=[0], y=[0], z=[0],
             name='Start', mode='markers', marker=marker_start,
@@ -256,6 +274,8 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
 
     fig.frames = [
         go.Frame(
+
+            # ANIMATE THE LINES, JOINTS, AND END
             data=[
                 go.Scatter3d(
                     x=[x[frame, joint], x[frame, joint+1]], 
