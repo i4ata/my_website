@@ -140,10 +140,18 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
         *[
             go.Scatter(
                 x=[x[-1, joint], x[-1, joint+1]], y=[y[-1, joint], y[-1, joint+1]], 
-                mode='lines+markers', name='Arm', 
-                hovertemplate=f'Joint {joint}' + _hover_suffix
+                mode='lines', 
+                hoverinfo='skip'
             )
             for joint in range(n_joints)
+        ],
+        *[
+            go.Scatter(
+                x=[x[-1, joint]], y=[y[-1, joint]],
+                mode='markers',
+                hovertemplate=f'Joint {joint}' + _hover_suffix
+            )
+            for joint in range(1, n_joints)
         ],
         go.Scatter(
             x=[x[-1, -1]], y=[y[-1, -1]], name='End', mode='markers', marker=marker_end,
@@ -168,9 +176,12 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
                 ) 
                 for joint in range(n_joints)
             ] + [
+                go.Scatter(x=[x[frame, joint]], y=[y[frame, joint]])
+                for joint in range(1, n_joints)
+            ] + [
                 go.Scatter(x=[x[frame, -1]], y=[y[frame, -1]])
             ],
-            traces=list(range(n_joints + 1)), name=str(frame), 
+            traces=list(range(2 * n_joints)), name=str(frame), 
             layout={'title': f'Iteration: {frame} | Error: {errors[frame]:.4f}'}
         )
         for frame in range(len(x))
@@ -204,16 +215,27 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
     marker_end = {'color': 'red', 'size': 5}
 
     fig.add_traces([
+        
+        # LINKS
+        # (Intentionally split from lines to do the hovering properly)
         *[
             go.Scatter3d(
                 x=[x[-1, joint], x[-1, joint+1]], 
                 y=[y[-1, joint], y[-1, joint+1]],
                 z=[z[-1, joint], z[-1, joint+1]], 
-                mode='lines+markers', name='Arm',
-                marker_size=3, line_width=3,
-                hovertemplate=f'Joint {joint}' + _hover_suffix
+                mode='lines', line_width=3, hoverinfo='skip'
             )
             for joint in range(n_joints)
+        ],
+        
+        # JOINTS TODO MAYBE MAKE THEM THE SAME COLOR AS THE LINES
+        *[
+            go.Scatter3d(
+                x=[x[-1, joint]], y=[y[-1, joint]], z=[z[-1, joint]], 
+                mode='markers', marker_size=3,
+                hovertemplate=f'Joint {joint}' + _hover_suffix
+            )
+            for joint in range(1, n_joints)
         ],
         go.Scatter3d(
             x=[x[-1, -1]], y=[y[-1, -1]], z=[z[-1, -1]], 
@@ -242,13 +264,16 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
                 ) 
                 for joint in range(n_joints)
             ] + [
+                go.Scatter3d(x=[x[frame, joint]], y=[y[frame, joint]], z=[z[frame, joint]])
+                for joint in range(1, n_joints)
+            ] + [
                 go.Scatter3d(
                     x=[x[frame, -1]], 
                     y=[y[frame, -1]],
                     z=[z[frame, -1]]
                 )
             ],
-            traces=list(range(n_joints + 1)), name=str(frame), 
+            traces=list(range(2 * n_joints)), name=str(frame), 
             layout={'title': f'Iteration: {frame} | Error: {errors[frame]:.4f}'}
         )
         for frame in range(n_iterations)
