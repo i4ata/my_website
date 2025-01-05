@@ -2,6 +2,7 @@ import dash
 from dash import Dash, html, dcc
 
 app = Dash(__name__, use_pages=True)
+server = app.server
 
 app.layout = html.Div([
     html.Div([
