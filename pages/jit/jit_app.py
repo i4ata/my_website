@@ -1,6 +1,7 @@
 from dash import Input, Output, State, dcc, html, ALL, dash_table, callback, register_page
 import numpy as np
 import plotly.graph_objects as go
+import plotly.express as px
 import math
 
 from pages.jit.jit import fk_2d, fk_3d, JIT
@@ -120,6 +121,7 @@ def generate(n_clicks, lengths, ee_true):
     )
 
 _hover_suffix = '<br>x: %{x}<br>y: %{y}<extra></extra>'
+_color_palette = px.colors.qualitative.Plotly
 
 def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
     
@@ -144,7 +146,8 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
             go.Scatter(
                 x=[x[-1, joint], x[-1, joint+1]], y=[y[-1, joint], y[-1, joint+1]], 
                 mode='lines', 
-                hoverinfo='skip'
+                hoverinfo='skip',
+                line_color=_color_palette[joint % len(_color_palette)]
             )
             for joint in range(n_joints)
         ],
@@ -154,7 +157,8 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
             go.Scatter(
                 x=[x[-1, joint]], y=[y[-1, joint]],
                 mode='markers',
-                hovertemplate=f'Joint {joint}' + _hover_suffix
+                hovertemplate=f'Joint {joint}' + _hover_suffix,
+                marker_color=_color_palette[joint % len(_color_palette)]
             )
             for joint in range(1, n_joints)
         ],
@@ -235,7 +239,8 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
                 x=[x[-1, joint], x[-1, joint+1]], 
                 y=[y[-1, joint], y[-1, joint+1]],
                 z=[z[-1, joint], z[-1, joint+1]], 
-                mode='lines', line_width=3, hoverinfo='skip'
+                mode='lines', line_width=3, hoverinfo='skip',
+                line_color=_color_palette[joint % len(_color_palette)]
             )
             for joint in range(n_joints)
         ],
@@ -245,7 +250,8 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
             go.Scatter3d(
                 x=[x[-1, joint]], y=[y[-1, joint]], z=[z[-1, joint]], 
                 mode='markers', marker_size=3,
-                hovertemplate=f'Joint {joint}' + _hover_suffix
+                hovertemplate=f'Joint {joint}' + _hover_suffix,
+                marker_color=_color_palette[joint % len(_color_palette)]
             )
             for joint in range(1, n_joints)
         ],
