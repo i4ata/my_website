@@ -152,7 +152,7 @@ def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
             for joint in range(n_joints)
         ],
 
-        # JOINTS TODO MAYBE MAKE THEM THE SAME COLOR AS THE LINES
+        # JOINTS
         *[
             go.Scatter(
                 x=[x[-1, joint]], y=[y[-1, joint]],
@@ -245,7 +245,7 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
             for joint in range(n_joints)
         ],
         
-        # JOINTS TODO MAYBE MAKE THEM THE SAME COLOR AS THE LINES
+        # JOINTS
         *[
             go.Scatter3d(
                 x=[x[-1, joint]], y=[y[-1, joint]], z=[z[-1, joint]], 

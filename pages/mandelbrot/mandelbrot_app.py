@@ -100,11 +100,11 @@ def generate(height, width, iterations, data, generate, reset):
         range_color=[0, iterations],
         contrast_rescaling='minmax'
     )
-    fig.update_layout(coloraxis_showscale=False, autosize=True)
+    fig.update_layout(coloraxis_showscale=False, autosize=True, height=1000, width=1000)
     
-    fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
-    fig.layout.updatemenus[0]['buttons'][0]['label'] = 'Play'
-    fig.layout.updatemenus[0]['buttons'][1]['label'] = 'Pause'
+    # fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
+    # fig.layout.updatemenus[0]['buttons'][0]['label'] = 'Play'
+    # fig.layout.updatemenus[0]['buttons'][1]['label'] = 'Pause'
     return fig
 
 @callback(
