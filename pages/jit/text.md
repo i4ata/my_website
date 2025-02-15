@@ -53,6 +53,10 @@ def fk_2d(lengths: np.ndarray, angles: np.ndarray) -> np.ndarray:
 
 Here, the input to `fk_2d` is an array of shape $(\ldots,N)$ representing the lengths $L_i$ of the $N$ links, and another array of shape $(\ldots,N)$ representing the angles $\theta_i$ for joint. The function above calculates forward kinematics in a batched fashion with an arbitrary number of batched dimensions (why that is useful comes later), with the only constraint that the number of links $N$ is the same across all samples. The output is an array of shape $(\ldots,2)$ representing the resulting endpoints $(x^*,y^*)$ for each sample in the batch.
 
+The following interaction visualizes the result of forward kinematics in 2D:
+
+<!-- INTERACTION -->
+
 ## Forward Kinematics in 3D
 
 In 3 dimensions, each link is represented by 2 angles:
@@ -99,6 +103,10 @@ def fk_3d(lengths: np.ndarray, angles: np.ndarray) -> np.ndarray:
 Here, the input is, again, a tensor of shape $(\ldots,N)$ representing the lengths $L_i$ of the $N$ links. However, since each link is now represented by 2 angles, the second tensor is of shape $(\ldots,2N)$ and is reshaped internally to $(\ldots,N,2)$, i.e. $(\ldots, N, \langle\theta,\phi\rangle)$. The function again allows for batched inputs with an arbitrary number of batched dimensions. The output is a tensor of shape $(\ldots,3)$ represting the resulting endpoints $(x^*,y^*,z^*)$.
 
 **Note**: This is a considerable simplification of the problem since rotations of the joints are not considered. The Jacobian Inverse Technique as implemented here would still work as it is right now if rotations are included. This is a nice idea for a future project!
+
+The following interaction visualizes the result of forward kinematics in 2D:
+
+<!-- INTERACTION -->
 
 ## Inverse Kinematics using the Jacobian Inverse Technique
 

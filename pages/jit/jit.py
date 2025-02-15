@@ -66,7 +66,6 @@ def fk_3d(lengths: np.ndarray, angles: np.ndarray, save_all: bool = False) -> np
     If True, return the location and absolute angle of each joint (..., <x,y,z,theta,phi>, N)
     If False, return only the endeffector position (..., 3)
     """
-
     # Initialize the accumulators
     x, y, z, theta, phi = np.zeros(shape=(5, *angles.shape[:-1]))
     if save_all: xs, ys, zs, thetas, phis = [x.copy()], [y.copy()], [z.copy()], [theta.copy()], [phi.copy()]
