@@ -20,7 +20,7 @@ $$
 
 If the magintude of $z$, i.e. $|z|=\sqrt{a^2+b^2}$, shoots to infinity as we iterate, then $c$ is not a member of the set Otherwise, if it remains bounded by a certain value, then $c$ is a member of the set. Commonly, the number 2 is chosen as a threshold. That is, if at any point the magintude of $z$ exceeds 2, then $c$ is excluded from the set. This is the plot for different values of $c$ (real part on the x-axis and imaginary part on the y-axis):
 
-![](../../assets/mandelbrot/image.png#mandelbrot_img)
+![MandelbrotSetViz](../../assets/mandelbrot/image.png#mandelbrot_img)
 
 It is the famous Mandelbrot set! The color of pixel $(x,y)$ represents the number of iterations it took for $z$ given $c=x+yi$ to diverge. The darker the color, the quicker $z$ diverges, white colors represent the numbers in the set. The image above is in resolution $5000\times5000$ and $100$ iterations are used to generate the set. The source code is on GitHub.
 
@@ -52,12 +52,14 @@ def mandelbrot_set(
 ```
 
 Inputs:
+
 - `range_real` defines the smallest and largest real parts of the numbers to be considered for the set $(x_{\min}, x_{\max})$. The default range is $[-2,1]$.
 - `range_im` defines the smallest and largest imaginary parts of the numbers $(y_{\min}, y_{\max})$. The default range is $[1.5,-1.5]$.
 - `dims` represents the number of real and imaginary values, i.e. the resolution of the resulting image $(w,h)$. The default dimensions are $5000\times 5000$.
 - `max_iter` defines the maximum number of iterations $n$ as the membership of a number in the set is defined iteratively. The default value is $100$. Note that it is impossible to determine whether a number is in the set or not as we would need to perform infinitely many iterations. The more iterations we have, the more accurate our estimation will be. This can be experienced first-hand with the interaction in the end!
 
 Outputs:
+
 - The mandelbrot set as a matrix $M$ of evenly spaced complex numbers such that $M_{xy}$ is the number of iterations it takes for the magnitude of the corresponding complex number $c_{xy}$, formally defined as:
 
 $$
@@ -88,6 +90,7 @@ Step 3: Initialize the Mandelbrot set $M$, which would keep the status of the nu
 ```
 
 Step 4: Initialize 2 boolean matrices:
+
 - `not_diverged` keeps track of the numbers that still have not diverged before the start of the current iteration
 - `diverged` keeps track of the numbers that diverge in the current iteration.
 

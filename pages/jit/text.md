@@ -8,7 +8,7 @@ When doing forward kinematics, we find the location of the end effector of a cha
 
 In 2 dimensions, the $i$-th link in the chain is represented by its length $L_i$ and the angle $\theta_i$ between the link and the $x$-axis as follows:
 
-![](../../assets/jit/2d_example.svg#jit_img)
+![FK_2D](../../assets/jit/2d_example.svg#jit_img)
 
 From here, we can easily get the equation for the link's endpoint $(x_i,y_i)$:
 
@@ -60,7 +60,7 @@ In 3 dimensions, each link is represented by 2 angles:
 - $\theta$: the angle between the projection of the link on the $xy$-plane and the positive $x$-axis
 - $\phi$: the angle between the link and the positive $z$-axis
 
-![](../../assets/jit/3d_example.svg#jit_img)
+![FK_3D](../../assets/jit/3d_example.svg#jit_img)
 
 From here, we can again easily get the equation for the link's endpoint $(x_i,y_i,z_i)$ using simple trigonometry:
 
@@ -154,7 +154,7 @@ Calculate the error $\xi - p(\hat{\omega})$, which is a matrix of shape $(B,2)$ 
 
 The diagram below visualizes this step. The `error` is the yellow dashed vector:
 
-![](../../assets/jit/step2.svg#jit_img)
+![ERROR_VIZ](../../assets/jit/step2.svg#jit_img)
 
 ### Step 3
 

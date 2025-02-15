@@ -77,18 +77,15 @@ def generate(n_clicks, lengths, ee_true):
     if n_clicks is None:
         return None, None
     
+    ee_true = np.array(ee_true)
     n = len(lengths)
     d = len(ee_true)
     fk = fk_2d if d == 2 else fk_3d
     lengths = np.array(lengths)[np.newaxis]
-    predicted_angles = JIT(lengths, np.array(ee_true)[np.newaxis], save_all=True)
+    predicted_angles = JIT(lengths, ee_true[np.newaxis], save_all=True)
     trajectories = fk(lengths, angles=predicted_angles, save_all=True)
 
-    fig = (
-        _plot_2d(x=trajectories[0], y=trajectories[1], ee_true=ee_true)
-        if d == 2 else
-        _plot_3d(x=trajectories[0], y=trajectories[1], z=trajectories[2], ee_true=ee_true)
-    )
+    fig = _plot(trajectories[:d], ee_true)
 
     updatemenu['buttons'][0]['args'][1] = {
         'frame': {'duration': 1000},
@@ -123,158 +120,67 @@ def generate(n_clicks, lengths, ee_true):
 _hover_suffix = '<br>x: %{x}<br>y: %{y}<extra></extra>'
 _color_palette = px.colors.qualitative.Plotly
 
-def _plot_2d(x: np.ndarray, y: np.ndarray, ee_true = np.ndarray) -> go.Figure:
+def _plot(x: np.ndarray, ee_true: np.ndarray) -> go.Figure:
     
-    n_joints = x.shape[1] - 1
-    n_iterations = len(x)
-    errors = np.linalg.norm(
-        np.stack((x[:, -1], y[:, -1]), axis=1) - np.array(ee_true), 
-        axis=1
-    )
-
+    d = len(ee_true)
+    n_joints = x.shape[2] - 1
+    n_iterations = x.shape[1]
+    errors = np.linalg.norm(x[:, :, -1].T - ee_true, axis=1)
+    
     fig = go.Figure()
 
-    marker_target = {'color': 'orange', 'symbol': 'star', 'size': 15}
-    marker_start = {'color': 'black', 'symbol': 'x', 'size': 10}
-    marker_end = {'color': 'red', 'size': 10}
+    marker_target = {'color': 'orange', 'symbol': 'star' if d==2 else 'diamond', 'size': 15 if d ==2 else 5}
+    marker_start = {'color': 'black', 'symbol': 'x', 'size': 10 if d ==2 else 5}
+    marker_end = {'color': 'red', 'size': 10 if d ==2 else 5}
+    marker_size = None if d==2 else 3
+    line_width = None if d==2 else 3
+
+    scatter = go.Scatter if d == 2 else go.Scatter3d
+    iterator = list(zip('xyz', range(d)))
 
     fig.add_traces([
 
         # LINKS
         # (Intentionally split from lines to do the hovering properly)
         *[
-            go.Scatter(
-                x=[x[-1, joint], x[-1, joint+1]], y=[y[-1, joint], y[-1, joint+1]], 
-                mode='lines', 
-                hoverinfo='skip',
-                line_color=_color_palette[joint % len(_color_palette)]
+            scatter( 
+                mode='lines', line_width=line_width, hoverinfo='skip',
+                line_color=_color_palette[joint % len(_color_palette)],
+                **{coord: [x[i, -1, joint], x[i, -1, joint+1]] for coord, i in iterator}
             )
             for joint in range(n_joints)
         ],
 
         # JOINTS
         *[
-            go.Scatter(
-                x=[x[-1, joint]], y=[y[-1, joint]],
-                mode='markers',
+            scatter(
+                mode='markers', marker_size=marker_size,
                 hovertemplate=f'Joint {joint}' + _hover_suffix,
-                marker_color=_color_palette[joint % len(_color_palette)]
+                marker_color=_color_palette[joint % len(_color_palette)],
+                **{coords: [x[i, -1, joint]] for coords, i in iterator}
             )
             for joint in range(1, n_joints)
         ],
 
         # END POINT
-        go.Scatter(
-            x=[x[-1, -1]], y=[y[-1, -1]], name='End', mode='markers', marker=marker_end,
-            hovertemplate='End' + _hover_suffix
+        scatter(
+            mode='markers', marker=marker_end,
+            hovertemplate='End' + _hover_suffix,
+            **{coord: [x[i, -1, -1]] for coord, i in iterator}
         ),
 
         # TARGET
-        go.Scatter(
-            x=[ee_true[0]], y=[ee_true[1]], name='Target', mode='markers', marker=marker_target,
-            hovertemplate='Target' + _hover_suffix
+        scatter(
+            mode='markers', marker=marker_target,
+            hovertemplate='Target' + _hover_suffix,
+            **{coord: [ee_true[i]] for coord, i in iterator}
         ),
 
         # START
-        go.Scatter(
-            x=[0], y=[0], name='Start', mode='markers', marker=marker_start,
-            hovertemplate='Joint 0' + _hover_suffix
-        )
-    ])
-
-    fig.frames = [
-        go.Frame(
-            # ANIMATE THE LINES, JOINTS, AND END
-            data=[
-                go.Scatter(
-                    x=[x[frame, joint], x[frame, joint+1]], 
-                    y=[y[frame, joint], y[frame, joint+1]]
-                ) 
-                for joint in range(n_joints)
-            ] + [
-                go.Scatter(x=[x[frame, joint]], y=[y[frame, joint]])
-                for joint in range(1, n_joints)
-            ] + [
-                go.Scatter(x=[x[frame, -1]], y=[y[frame, -1]])
-            ],
-            traces=list(range(2 * n_joints)), name=str(frame), 
-            layout={'title': f'Iteration: {frame} | Error: {errors[frame]:.4f}'}
-        )
-        for frame in range(len(x))
-    ]
-
-    axis_range = min(x.min(), y.min()) - .2, max(x.max(), y.max()) + .2
-    fig.update_xaxes(title='x', range=axis_range, constrain='domain')
-    fig.update_yaxes(title='y', range=axis_range, scaleanchor='x')
-    fig.update_layout(
-        autosize=True,
-        height=800,
-        width=800,
-        title={'text': f'Iterations: {n_iterations} | Error: {errors[-1]:.4f}'}
-    )
-
-    return fig
-
-def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) -> go.Figure:
-    
-    n_joints = x.shape[1] - 1
-    n_iterations = len(x)
-    errors = np.linalg.norm(
-        np.stack((x[:, -1], y[:, -1], z[:, -1]), axis=1) - np.array(ee_true), 
-        axis=1
-    )
-    
-    fig = go.Figure()
-    
-    marker_target = {'color': 'orange', 'symbol': 'diamond', 'size': 5}
-    marker_start = {'color': 'black', 'symbol': 'x', 'size': 5}
-    marker_end = {'color': 'red', 'size': 5}
-
-    fig.add_traces([
-        
-        # LINKS
-        # (Intentionally split from lines to do the hovering properly)
-        *[
-            go.Scatter3d(
-                x=[x[-1, joint], x[-1, joint+1]], 
-                y=[y[-1, joint], y[-1, joint+1]],
-                z=[z[-1, joint], z[-1, joint+1]], 
-                mode='lines', line_width=3, hoverinfo='skip',
-                line_color=_color_palette[joint % len(_color_palette)]
-            )
-            for joint in range(n_joints)
-        ],
-        
-        # JOINTS
-        *[
-            go.Scatter3d(
-                x=[x[-1, joint]], y=[y[-1, joint]], z=[z[-1, joint]], 
-                mode='markers', marker_size=3,
-                hovertemplate=f'Joint {joint}' + _hover_suffix,
-                marker_color=_color_palette[joint % len(_color_palette)]
-            )
-            for joint in range(1, n_joints)
-        ],
-
-        # END
-        go.Scatter3d(
-            x=[x[-1, -1]], y=[y[-1, -1]], z=[z[-1, -1]], 
-            name='End', mode='markers', marker=marker_end,
-            hovertemplate='End' + _hover_suffix
-        ),
-
-        # TARGET
-        go.Scatter3d(
-            x=[ee_true[0]], y=[ee_true[1]], z=[ee_true[2]], 
-            name='Target', mode='markers', marker=marker_target,
-            hovertemplate='Target' + _hover_suffix
-        ),
-
-        # START
-        go.Scatter3d(
-            x=[0], y=[0], z=[0],
-            name='Start', mode='markers', marker=marker_start,
-            hovertemplate='Joint 0' + _hover_suffix
+        scatter(
+            mode='markers', marker=marker_start,
+            hovertemplate='Joint 0' + _hover_suffix,
+            **{coord: [0] for coord, _ in iterator}
         )
     ])
 
@@ -282,22 +188,18 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
         go.Frame(
 
             # ANIMATE THE LINES, JOINTS, AND END
+            # SADLY WE NEED TO PASS AN ENTIRE SCATTER3D OBJECT INSTEAD OF JUST XYZ AS IN 2D
             data=[
-                go.Scatter3d(
-                    x=[x[frame, joint], x[frame, joint+1]], 
-                    y=[y[frame, joint], y[frame, joint+1]],
-                    z=[z[frame, joint], z[frame, joint+1]]
-                ) 
+                # Links
+                scatter(**{coord: [x[i, frame, joint], x[i, frame, joint+1]] for coord, i in iterator})
                 for joint in range(n_joints)
             ] + [
-                go.Scatter3d(x=[x[frame, joint]], y=[y[frame, joint]], z=[z[frame, joint]])
+                # Joints
+                scatter(**{coord: [x[i, frame, joint]] for coord, i in iterator})
                 for joint in range(1, n_joints)
             ] + [
-                go.Scatter3d(
-                    x=[x[frame, -1]], 
-                    y=[y[frame, -1]],
-                    z=[z[frame, -1]]
-                )
+                # End
+                scatter(**{coord: [x[i, frame, -1]] for coord, i in iterator})
             ],
             traces=list(range(2 * n_joints)), name=str(frame), 
             layout={'title': f'Iteration: {frame} | Error: {errors[frame]:.4f}'}
@@ -305,20 +207,22 @@ def _plot_3d(x: np.ndarray, y: np.ndarray, z: np.ndarray, ee_true = np.ndarray) 
         for frame in range(n_iterations)
     ]
 
-    axis_range = min(x.min(), y.min(), z.min()) - .2, max(x.max(), y.max(), z.max()) + .2
-    tick_vals = np.linspace(math.floor(axis_range[0]), math.ceil(axis_range[1]), 5)
-    tick_text = list(map(str, tick_vals))
-    axes = {'range': axis_range, 'tickvals': tick_vals, 'ticktext': tick_text}
-
     fig.update_layout(
-        scene={
-            'xaxis': axes, 'yaxis': axes, 'zaxis': axes, 
-            'aspectratio': {'x':1, 'y':1, 'z':1}
-        },
         autosize=True,
         height=800,
         width=800,
-        title={'text': f'Iterations: {n_iterations} | Error: {errors[-1]:.4f}'}
+        title={'text': f'Iterations: {n_iterations} | Error: {errors[-1]:.4f}'},
     )
+
+    axis_range = x.min() - .2, x.max() + .2
+    if d == 2:
+        fig.update_xaxes(title='x', range=axis_range, constrain='domain')
+        fig.update_yaxes(title='y', range=axis_range, scaleanchor='x')
+    else:
+        tick_vals = np.linspace(math.floor(axis_range[0]), math.ceil(axis_range[1]), 5)
+        tick_text = list(map(str, tick_vals))
+        axes = {'range': axis_range, 'tickvals': tick_vals, 'ticktext': tick_text}
+        scene = {'xaxis': axes, 'yaxis': axes, 'zaxis': axes, 'aspectratio': {'x':1, 'y':1, 'z': 1}}
+        fig.update_layout(scene=scene)
 
     return fig

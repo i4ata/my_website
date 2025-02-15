@@ -12,3 +12,20 @@ img[src*="#mandelbrot_img"] {
     width: 90vw;
     height: 90vh;
 }
+
+
+/* TO DISPLAY THE MARKDOWN TABLES PROPERLY: https://community.plotly.com/t/tables-in-markdown/15823/8 */
+table {
+    border-collapse: collapse;
+  }
+  th:not(.CalendarDay),
+  td:not(.CalendarDay) {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #E1E1E1; }
+  th:first-child:not(.CalendarDay),
+  td:first-child:not(.CalendarDay) {
+    padding-left: 0; }
+  th:last-child:not(.CalendarDay),
+  td:last-child:not(.CalendarDay) {
+    padding-right: 0; }

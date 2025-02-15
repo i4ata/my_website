@@ -102,9 +102,9 @@ def generate(height, width, iterations, data, generate, reset):
     )
     fig.update_layout(coloraxis_showscale=False, autosize=True, height=1000, width=1000)
     
-    # fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
-    # fig.layout.updatemenus[0]['buttons'][0]['label'] = 'Play'
-    # fig.layout.updatemenus[0]['buttons'][1]['label'] = 'Pause'
+    fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
+    fig.layout.updatemenus[0]['buttons'][0]['label'] = 'Play'
+    fig.layout.updatemenus[0]['buttons'][1]['label'] = 'Pause'
     return fig
 
 @callback(
@@ -152,29 +152,26 @@ def _plot(c: complex, data: pd.DataFrame, iterations: int) -> go.Figure:
         'Iteration: %{pointNumber}<br>Re(z): %{x}<br>Im(z): %{y}<extra></extra>'
     )
     line = dict(color='blue')
-    fig.append_trace(
-        go.Scatter(
-            x=data['Iteration'], y=data['Re(z)'], 
-            mode='lines', line=line, name='Re(z)', 
-            hovertemplate=hovertemplates[0]
-        ), 
-        row=1, col=1
-    )
-    fig.append_trace(
-        go.Scatter(
-            x=data['Iteration'], y=data['Im(z)'], 
-            mode='lines', line=line, name='Im(z)',
-            hovertemplate=hovertemplates[1]
-        ),
-        row=1, col=2
-    )
-    fig.append_trace(
-        go.Scatter(
-            x=data['Re(z)'], y=data['Im(z)'], 
-            mode='lines', line=line, name='z',
-            hovertemplate=hovertemplates[2]
-        ),
-        row=1, col=3
+    fig.add_traces(
+        data=[
+            go.Scatter(
+                x=data['Iteration'], y=data['Re(z)'], 
+                mode='lines', line=line, name='Re(z)', 
+                hovertemplate=hovertemplates[0]
+            ),
+            go.Scatter(
+                x=data['Iteration'], y=data['Im(z)'], 
+                mode='lines', line=line, name='Im(z)',
+                hovertemplate=hovertemplates[1]
+            ),
+            go.Scatter(
+                x=data['Re(z)'], y=data['Im(z)'], 
+                mode='lines', line=line, name='z',
+                hovertemplate=hovertemplates[2]
+            )
+        ],
+        rows=1,
+        cols=[1,2,3]
     )
     fig.add_shape(type='circle', x0=-2, y0=-2, x1=2, y1=2, row=1, col=3)
 
@@ -212,9 +209,9 @@ def _plot(c: complex, data: pd.DataFrame, iterations: int) -> go.Figure:
     fig.frames = [
         go.Frame(
             data=[
-                go.Scatter(x=[data['Iteration'][i]], y=[data['Re(z)'][i]]),
-                go.Scatter(x=[data['Iteration'][i]], y=[data['Im(z)'][i]]),
-                go.Scatter(x=[data['Re(z)'][i]], y=[data['Im(z)'][i]])
+                {'x': [data['Iteration'][i]], 'y': [data['Re(z)'][i]]},
+                {'x': [data['Iteration'][i]], 'y': [data['Im(z)'][i]]},
+                {'x': [data['Re(z)'][i]], 'y': [data['Im(z)'][i]]}
             ],
             traces=[3, 4, 5],
             name=str(i)

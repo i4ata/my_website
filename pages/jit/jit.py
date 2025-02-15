@@ -32,7 +32,7 @@ def fk_2d(lengths: np.ndarray, angles: np.ndarray, save_all: bool = False) -> np
 
     # Initialize the accumulators (all 0)
     x, y, theta = np.zeros(shape=(3, *angles.shape[:-1]))
-    if save_all: xs, ys, thetas = [x.copy()], [y.copy()], [theta]
+    if save_all: xs, ys, thetas = [x.copy()], [y.copy()], [theta.copy()]
     
     # Loop over the links and compute the running positions and angles
     for i in range(lengths.shape[-1]):
