@@ -10,7 +10,7 @@ from pages.three_body_problem.three_body_problem import run_euler
 with open('pages/three_body_problem/text.md') as f:
     text = f.readlines()
 
-register_page(__name__)
+register_page(__name__, path='/3bp')
 
 layout = html.Div([
     dcc.Markdown(text, mathjax=True),
@@ -177,6 +177,8 @@ def _plot_values(x: np.ndarray, v: np.ndarray, a: np.ndarray) -> go.Figure:
     for i, name in enumerate(('x', 'y', 'z')[:d] + ('vx', 'vy', 'vz')[:d] + ('ax', 'ay', 'az')[:d], start=1):
         fig.update_yaxes(title=name, row=i)
     return fig
+
+# TODO: MAKE IT THE SAME PLOT
 
 def _plot_2d(x: np.ndarray, animate: bool) -> go.Figure:
 

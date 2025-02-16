@@ -7,7 +7,7 @@ server = app.server
 app.layout = html.Div([
     html.Div([
         html.Div(
-            dcc.Link(f"{page['name']}", href=page["relative_path"])
+            dcc.Link(f'{page["name"]}', href=page['relative_path'])
         ) for page in dash.page_registry.values()
     ]),
     dash.page_container

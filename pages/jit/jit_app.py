@@ -11,7 +11,7 @@ from utils import slider, updatemenu
 with open('pages/jit/text.md') as f:
     text = f.read().split('<!-- INTERACTION -->')
 
-register_page(__name__)
+register_page(__name__, path='/jit')
 
 _hover_suffix = '<br>x: %{x}<br>y: %{y}<extra></extra>'
 _color_palette = px.colors.qualitative.Plotly
