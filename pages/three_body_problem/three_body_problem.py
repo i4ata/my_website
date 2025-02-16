@@ -26,7 +26,7 @@ def _compute_acceleration(
     
     Inputs
     - x: Numpy array of shape [b, n, d], representing the bodies' current positions
-    - M: Numpy array of shape [b, n, 1] or [n, 1], representing the bodies' masses
+    - M: Numpy array of shape [b, n], representing the bodies' masses
     - G: Newton's gravitational constant
     - max_magnitude: Number to clamp the accelerations
 
@@ -40,17 +40,17 @@ def _compute_acceleration(
 
     # [b, n, n, 1]
     # [..., i, j] represents m_i * m_j
-    masses = (M[:, np.newaxis] * M[:, np.newaxis])[:, :, :, np.newaxis]
+    masses = (M[:, np.newaxis] * M[:, :, np.newaxis])[:, :, :, np.newaxis]
 
     # [b, n, n, 1]
     # [..., i, j] represents the distances between bodies i and j
     distances: np.ndarray = np.linalg.norm(directions, axis=3, keepdims=True)
-
+    
     # [b, n, d]
     # [..., i, j] represents the acceleration of body i in direction j
     # Computed using Newton's law of motion
     accelerations = np.nansum(directions * masses * G / distances ** 3, axis=2)
-    
+
     # Clamp the acceleration's magnitudes
     accelerations = _clamp_magnitude(accelerations, max_magnitude=max_magnitude)
 

@@ -17,7 +17,7 @@ $$
 \end{align*}
 $$
 
-Here $\mathbf{a}(t)_i$ is the acceleration of body $i$ at time $t$ and it specifies the change of velocity in each cardinal direction. 
+Here $\mathbf{a}(t)_i$ is the acceleration of body $i$ at time $t$ and it specifies the change of velocity in each cardinal direction.
 
 ## Euler Integration
 
@@ -69,7 +69,7 @@ The inputs to the function `run_euler` are:
 - `G`: Newton's gravitational constant (comes later)
 - `max_magnitude`: The maximum acceleration magnitude allowed in the simulation
 
-The code makes use of vecotirzed operations on arrays in Numpy to efficiently run many simulations in parallel. 
+The code makes use of vecotirzed operations on arrays in Numpy to efficiently run many simulations in parallel.
 
 ## Acceleration Computation
 
@@ -91,13 +91,14 @@ def _compute_acceleration(
 ```
 
 The inputs are:
+
 - `x`: $B\times N\times D$ array. $\mathbf{x}_{ijk}$ represents the current $k$-th coordinate of the $j$-th body in the $i$-th parallel simulation.
 - `M`: $B\times N$ array, defining the masses $m_i$ of each of the $N$ bodies.
 - `G`: The Newton gravitation constant.
 
 We can follow this illustrative diagram, which shows how the acceleration for body 1 is calculated in a 3 body system:
 
-![](../../assets/three_body_problem/diagram.svg)
+![diagram](../../assets/three_body_problem/diagram.svg)
 
 ### Step 1
 
@@ -119,7 +120,7 @@ Compute the forces $F$ that each body applies to each other body. Since $F$ is a
 
 ```python
     # [B, N, N, 1]
-    masses = (M[:, np.newaxis] * M[:, np.newaxis])[:, :, :, np.newaxis]
+    masses = (M[:, np.newaxis] * M[:, :, np.newaxis])[:, :, :, np.newaxis]
     
     # [B, N, N, D]
     pairwise_accelerations = directions * masses * G / distances ** 3
