@@ -146,7 +146,7 @@ def generate(n_clicks, dims, n, data, step, max_t, G, max_magnitude, animate):
         max_magnitude=max_magnitude
     )
     
-    fig = {2: _plot_2d, 3: _plot_3d}[dims](x, animate)
+    fig = _plot(x, animate)
     fig_values = _plot_values(x, v, a)
     
     return dcc.Graph(figure=fig), dcc.Graph(figure=fig_values)
@@ -178,38 +178,38 @@ def _plot_values(x: np.ndarray, v: np.ndarray, a: np.ndarray) -> go.Figure:
         fig.update_yaxes(title=name, row=i)
     return fig
 
-# TODO: MAKE IT THE SAME PLOT
 
-def _plot_2d(x: np.ndarray, animate: bool) -> go.Figure:
-
-    t, n, _ = x.shape
-
+def _plot(x: np.ndarray, animate: bool) -> go.Figure:
+    t, n, d = x.shape
     fig = go.Figure()
+    scatter = go.Scatter if d == 2 else go.Scatter3d
+    iterator = list(zip('xyz', range(d)))
+    marker_size = 10 if d == 2 else 2
     fig.add_traces(
         [
-            go.Scatter(
-                x=x[:, i, 0], y=x[:, i, 1], 
-                mode='lines', hoverinfo='skip', line_color=colors[i%n_colors]
-            ) 
-            for i in range(n)
-        ] 
+            scatter(
+                mode='lines', hoverinfo='skip', line_color=colors[body_id%n_colors],
+                **{coord: x[:, body_id, i] for coord, i in iterator}
+            )
+            for body_id in range(n)
+        ]
         +
         [
-            go.Scatter(
-                x=[x[0, i, 0]], y=[x[0, i, 1]], 
-                mode='markers', marker_color=colors[i%n_colors], marker_size=10, hoverinfo='skip'
-            ) 
-            for i in range(n)
-        ],
+            scatter(
+                mode='markers', hoverinfo='skip', marker_color=colors[body_id%n_colors], marker_size=marker_size,
+                **{coord: [x[0, body_id, i]] for coord, i in iterator}
+            )
+            for body_id in range(n)
+        ]
     )
 
     if animate:
         fig.frames = [
             go.Frame(
                 data=[
-                    {'x': x[max(frame-50, 0):frame, i, 0], 'y': x[max(frame-50, 0):frame, i, 1]} for i in range(n)
+                    scatter(**{coord: x[max(frame-50, 0):frame, body_id, i] for coord, i in iterator}) for body_id in range(n)
                 ] + [
-                    {'x': [x[frame, i, 0]], 'y': [x[frame, i, 1]]} for i in range(n)
+                    scatter(**{coord: [x[frame, body_id, i]] for coord, i in iterator}) for body_id in range(n)
                 ],
                 traces=list(range(n*2))
             )
@@ -217,81 +217,27 @@ def _plot_2d(x: np.ndarray, animate: bool) -> go.Figure:
         ]
 
     fig.update_layout(
-        title=f'Simulation of {n} bodies in 2D', 
+        title=f'Simulation of {n} bodies in {d}D', 
         showlegend=False, 
         autosize=True, height=1000, width=1000,
         updatemenus=[updatemenu] if animate else []
     )
-    fig.update_xaxes(title='x', range=[x[..., 0].min() - 1, x[..., 0].max() + 1], constrain='domain')
-    fig.update_yaxes(title='y', range=[x[..., 1].min() - 1, x[..., 1].max() + 1], scaleanchor='x')
+
+    if d == 2:
+        fig.update_xaxes(title='x', range=[x[..., 0].min() - 1, x[..., 0].max() + 1], constrain='domain')
+        fig.update_yaxes(title='y', range=[x[..., 1].min() - 1, x[..., 1].max() + 1], scaleanchor='x')
+    else:
+        xaxis = {'title': 'x', 'range': [x[..., 0].min() - 1, x[..., 0].max() + 1]}
+        yaxis = {'title': 'y', 'range': [x[..., 1].min() - 1, x[..., 1].max() + 1]}
+        zaxis = {'title': 'z', 'range': [x[..., 2].min() - 1, x[..., 2].max() + 1]}
+        fig.update_layout(
+            scene={
+                'xaxis': xaxis, 'yaxis': yaxis, 'zaxis': zaxis, 
+                'aspectratio': {'x':1, 'y':1, 'z':1}
+            }
+        )
     return fig
-
-def _plot_3d(x: np.ndarray, animate: bool) -> go.Figure:
-
-    t, n, _ = x.shape
-    fig = go.Figure()
-    fig.add_traces(
-        [
-            go.Scatter3d(
-                x=x[:, i, 0], 
-                y=x[:, i, 1],
-                z=x[:, i, 2], 
-                mode='lines',
-                line_color=colors[i%n_colors],
-                hoverinfo='skip'
-            ) 
-            for i in range(n)
-        ] 
-        +
-        [
-            go.Scatter3d(
-                x=[x[0, i, 0]], 
-                y=[x[0, i, 1]],
-                z=[x[0, i, 2]], 
-                mode='markers', 
-                marker_color=colors[i%n_colors],
-                marker_size=2,
-                hoverinfo='skip'
-            ) 
-            for i in range(n)
-        ]
-    )
-
-    if animate:
-        fig.frames = [
-            go.Frame(
-                data=[
-                    go.Scatter3d(
-                        x=x[max(frame-50, 0):frame, i, 0], 
-                        y=x[max(frame-50, 0):frame, i, 1],
-                        z=x[max(frame-50, 0):frame, i, 2]   
-                    ) for i in range(n)
-                ] + [
-                    go.Scatter3d(
-                        x=[x[frame, i, 0]], 
-                        y=[x[frame, i, 1]],
-                        z=[x[frame, i, 2]],
-                    ) for i in range(n)
-                ]
-            )
-            for frame in range(t)
-        ]
-
-    xaxis = {'title': 'x', 'range': [x[..., 0].min() - 1, x[..., 0].max() + 1]}
-    yaxis = {'title': 'y', 'range': [x[..., 1].min() - 1, x[..., 1].max() + 1]}
-    zaxis = {'title': 'z', 'range': [x[..., 2].min() - 1, x[..., 2].max() + 1]}
-    fig.update_layout(
-        title=f'Simulation of {n} bodies in 3D',
-        showlegend=False, 
-        autosize=True, height=1000, width=1000,
-        scene={
-            'xaxis': xaxis, 'yaxis': yaxis, 'zaxis': zaxis, 
-            'aspectratio': {'x':1, 'y':1, 'z':1}
-        },
-        updatemenus=[updatemenu] if animate else []
-    )
-    return fig
-     
+  
 _play_button = {
     'label': 'Play', 
     'method': 'animate',
