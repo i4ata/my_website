@@ -35,7 +35,13 @@ class BSpline:
         self.n = n
 ```
 
-In this case, the knots are evenly spaced, which is consistent with KAN but is not required. Each basis element is centered around a knot and is defined over $p+2$ knots. Therefore, we require $n+p+1$ knots in total. Then, only the middle $n-p$ knots are required to include all the basis elements. Our range is of length 2 (between -1 and 1) so we need the distance between our knots to be $\frac{2}{n-p}$. The following interaction visualizes the B-Spline:
+In this case, the knots are evenly spaced, which is consistent with KAN but is not required. Each basis element is defined over $p+2$ knots, with the first and last knot being the anchors. In total, we would end up with $n$ knots, one for each element, and additional $\left\lfloor \frac{p+1}{2}\right\rfloor$ on each sides. In the code `knots` represents the number of required knots.
+
+Next, we would need exactly the middle $n-p+1$ knots for each element to be included. The variable `grid_size` defines the number of distances for the middle $n-p+1$ knots, i.e. $n-p+1-1=n-p$.
+
+The domain of our spline is $[-1,1]$, which has a total length of 2. To fit exactly $n-p$ knots in this range, they need to be $\frac{2}{n-p}$ apart from each other, which is what the variable `step` represents.
+
+Finally, we can define our knots in the `t` variable by including the $p$ additional knots outside of the predefined range on each side. The following interaction visualizes the B-Spline:
 
 <!-- INTERACTION -->
 

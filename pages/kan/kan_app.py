@@ -176,7 +176,8 @@ def plot_basis(n: int, p: int, ws: List[float]):
     fig.add_vline(-1, annotation_text='-1', annotation_position='top', **line)
     fig.add_vline(1, annotation_text='1', annotation_position='top', **line)
     fig.update_xaxes(tickmode='array', tickvals=spline.t, ticktext=[f't{i}' for i in range(len(spline.t))], title='x', row=2, col=1)
-    
+    fig.update_yaxes(title='y')
+
     fig.update_layout(
         showlegend=False,
         title=f'Grid of {n} B-Spline basis elements of degree {p}',

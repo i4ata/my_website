@@ -7,6 +7,14 @@ np.random.seed(0)
 class BSpline:
     
     def __init__(self, p: int = 3, n: int = 7) -> None:
+        """
+        B-Spline
+        
+        Inputs:
+        - p (int): The degree of each B-spline basis element
+        - n (int): The number of basis elements
+        """
+        
         knots = n+p+1
         grid_size = n-p
         step = 2 / grid_size
@@ -23,10 +31,30 @@ class BSpline:
         )
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
+        """
+        Recursively evaluate the B-Spline to get the contribution of the basis elements at x
+
+        Inputs:
+        - x (numpy.ndarray): An array of shape [m], the input
+
+        Returns:
+        - numpy.ndarray: Shape [n, m], element ij is the contribution of element i on point j in x
+        """
+        
         components = [self._rec_call(x, self.p, i, self.t) for i in range(self.n)]
         return np.stack(components)
 
     def derivative(self, x: np.ndarray) -> np.ndarray:
+        """
+        Recursively evaluate the derivative of the B-Spline
+
+        Inputs:
+        - x (numpy.ndarray): An array of shape [m], the input
+
+        Returns:
+        - numpy.ndarray: Shape [n, m], element ij is the contribution of element i on point j in x
+        """
+
         components = [
             (
                 self._rec_call(x, self.p-1, i, self.t) / (self.t[i+self.p] - self.t[i])

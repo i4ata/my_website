@@ -4,7 +4,7 @@ import numpy as np
 import dash_cytoscape as cyto
 np.random.seed(1)
 
-from pages.backprop.nn import NN, Linear
+from pages.backprop.backprop import NN, Linear
 from utils import slider, updatemenu
 
 # TODO: THE EDGES' LABELS APPEAR BEHIND THE EDGES
