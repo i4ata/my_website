@@ -36,13 +36,13 @@ layout = html.Div([
     html.Div([
         html.Label('Number of units per hidden layer'),
         html.Br(),
-        dcc.Input(id='size', value=4, step=1, min=0, type='number')
+        dcc.Input(id='size', value=8, step=1, min=0, type='number')
     ]),
     html.Br(),
     html.Div([
         html.Label('Learning rate'),
         html.Br(),
-        dcc.Input(id='lr', value=0.001, step=.001, min=0, type='number')
+        dcc.Input(id='lr', value=0.01, step=.001, min=0, type='number')
     ]),
     html.Br(),
     html.Div([

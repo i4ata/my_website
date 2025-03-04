@@ -27,7 +27,6 @@ layout = html.Div([
     html.Br(),
     html.Div(id='parameters_container_2d'),
     html.Br(),
-    html.Button('Submit', id='submit_2d'),
     html.Div(id='graph_fk_2d'),
     html.Br(),
 
@@ -41,7 +40,6 @@ layout = html.Div([
     html.Br(),
     html.Div(id='parameters_container_3d'),
     html.Br(),
-    html.Button('Submit', id='submit_3d'),
     html.Div(id='graph_fk_3d'),
     html.Br(),
     
@@ -95,12 +93,11 @@ def set_length_2d(n: int, lengths: List[float], angles: List[float]):
 
 @callback(
     Output('graph_fk_2d', 'children'),
-    Input('submit_2d', 'n_clicks'),
-    State({'type': 'length_2d', 'index': ALL}, 'value'),
-    State({'type': 'theta_2d', 'index': ALL}, 'value')
+    Input({'type': 'length_2d', 'index': ALL}, 'value'),
+    Input({'type': 'theta_2d', 'index': ALL}, 'value')
 )
-def plot_2d(n_clicks: Optional[int], lengths: List[float], angles: List[float]):
-    if n_clicks is None: return None
+def plot_2d(lengths: List[float], angles: List[float]):
+    if not lengths or not angles: return None
     assert len(lengths) == len(angles)
     x = fk_2d(np.array(lengths), np.array(angles), save_all=True)
     return dcc.Graph(figure=_plot_fk(x[:2]))
@@ -134,13 +131,12 @@ def set_length_3d(n: int, lengths: List[float], thetas: List[float], phis: List[
 
 @callback(
     Output('graph_fk_3d', 'children'),
-    Input('submit_3d', 'n_clicks'),
-    State({'type': 'length_3d', 'index': ALL}, 'value'),
-    State({'type': 'theta_3d', 'index': ALL}, 'value'),
-    State({'type': 'phi_3d', 'index': ALL}, 'value')
+    Input({'type': 'length_3d', 'index': ALL}, 'value'),
+    Input({'type': 'theta_3d', 'index': ALL}, 'value'),
+    Input({'type': 'phi_3d', 'index': ALL}, 'value')
 )
-def plot_3d(n_clicks: Optional[int], lengths: List[float], thetas: List[float], phis: List[float]):
-    if n_clicks is None: return None
+def plot_3d(lengths: List[float], thetas: List[float], phis: List[float]):
+    if not lengths or not thetas or not phis: return None
     assert len(lengths) == len(thetas) == len(phis)
     x = fk_3d(np.array(lengths), np.concatenate((thetas, phis)), save_all=True)
     return dcc.Graph(figure=_plot_fk(x[:3]))
@@ -184,11 +180,12 @@ def set_length(n):
 def generate(n_clicks, lengths, ee_true):
     if n_clicks is None:
         return None, None
+    n = len(lengths)
+    d = len(ee_true)
     
     ee_true = np.array(ee_true)
     lengths = np.array(lengths)[np.newaxis]
-    n = len(lengths)
-    d = len(ee_true)
+    
     fk = fk_2d if d == 2 else fk_3d
     predicted_angles = JIT(lengths, ee_true[np.newaxis], save_all=True)
     trajectories = fk(lengths, angles=predicted_angles, save_all=True)
@@ -205,7 +202,6 @@ def generate(n_clicks, lengths, ee_true):
             {'Angle': 'θ'} | {f'Joint {i}': round(angles_3d[i, 0], 4) for i in range(n)},
             {'Angle': 'φ'} | {f'Joint {i}': round(angles_3d[i, 1], 4) for i in range(n)}
         ]
-
     return (
         dcc.Graph(figure=fig, id=f'graph_{d}d'), 
         html.Div([
@@ -345,4 +341,17 @@ def _plot(x: np.ndarray, ee_true: np.ndarray) -> go.Figure:
         updatemenus=[updatemenu],
         sliders=[slider(n_iterations)]
     )
+
+    # Copied from the other function
+    axis_range = x.min() - .2, x.max() + .2
+    if d == 2:
+        fig.update_xaxes(title='x', range=axis_range, constrain='domain')
+        fig.update_yaxes(title='y', range=axis_range, scaleanchor='x')
+    else:
+        tick_vals = np.linspace(math.floor(axis_range[0]), math.ceil(axis_range[1]), 5)
+        tick_text = list(map(str, tick_vals))
+        axes = {'range': axis_range, 'tickvals': tick_vals, 'ticktext': tick_text}
+        scene = {'xaxis': axes, 'yaxis': axes, 'zaxis': axes, 'aspectratio': {'x':1, 'y':1, 'z': 1}}
+        fig.update_layout(scene=scene)
+
     return fig
