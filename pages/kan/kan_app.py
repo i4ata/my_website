@@ -1,4 +1,4 @@
-from dash import Input, Output, State, html, dcc, ALL, register_page, callback
+from dash import Input, Output, State, html, dcc, ALL, register_page, callback, ctx
 import plotly.graph_objects as go
 import dash_cytoscape as cyto
 from plotly.subplots import make_subplots
@@ -66,6 +66,7 @@ layout = html.Div([
     ]),
     html.Br(),
     html.Div(id='weights_container'),
+    html.Button('Random', id='random_weights'),
     dcc.Graph(id='basis_elements'),
     html.Label(id='error'),
     dcc.Markdown(text[1], mathjax=True),
@@ -117,21 +118,23 @@ def plot_spline(data: Dict[Literal['source', 'target'], str]):
 
     return fig, {'display': 'block'}
 
-
 @callback(
     Output('weights_container', 'children'),
     Input('n', 'value'),
+    Input('random_weights', 'n_clicks'),
     State({'type': 'w', 'index': ALL}, 'value')
 )
-def set_weights(n: int, ws: List[float]):
+def set_weights(n: int, n_clicks: int, ws: List[float]):
     
     if (diff := n - len(ws)) > 0:
         ws.extend([1] * diff)
+
+    if ctx.triggered_id == 'random_weights': ws = np.round(np.random.rand(len(ws)) * 2 - 1, 1)
         
     inputs = [html.Label('Choose the weights of the basis elements')] + [
         html.Div([
             html.Label(f'Basis {i+1}: '),
-            dcc.Input(id={'type': 'w', 'index': i}, type='number', value=w, min=0, step=.1),
+            dcc.Input(id={'type': 'w', 'index': i}, type='number', value=w, step=.1, inputMode='numeric'),
         ])
         for i, w in zip(range(n), ws)
     ]
@@ -156,7 +159,7 @@ def plot_basis(n: int, p: int, ws: List[float]):
     
     ws = np.nan_to_num(np.array(ws, dtype=float))[:, np.newaxis]
     fig.add_trace(
-        go.Scatter(x=xs, y=np.sum(ys*ws, axis=0), mode='lines', line_color='black'), 
+        go.Scatter(x=xs, y=np.sum(ys*ws, axis=0), mode='lines', line_color='black', name='spline'), 
         row=1, col=1
     )
     fig.add_traces(

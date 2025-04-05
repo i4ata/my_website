@@ -1,4 +1,4 @@
-from dash import Input, Output, State, dcc, html, ALL, dash_table, callback, register_page
+from dash import Input, Output, State, dcc, html, ALL, dash_table, callback, register_page, ctx
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
@@ -26,6 +26,7 @@ layout = html.Div([
     ]),
     html.Br(),
     html.Div(id='parameters_container_2d'),
+    html.Button('Random', id='random_2d'),
     html.Br(),
     html.Div(id='graph_fk_2d'),
     html.Br(),
@@ -39,6 +40,7 @@ layout = html.Div([
     ]),
     html.Br(),
     html.Div(id='parameters_container_3d'),
+    html.Button('Random', id='random_3d'),
     html.Br(),
     html.Div(id='graph_fk_3d'),
     html.Br(),
@@ -71,21 +73,26 @@ layout = html.Div([
 @callback(
     Output('parameters_container_2d', 'children'),
     Input('n_fk2d', 'value'),
+    Input('random_2d', 'n_clicks'),
     State({'type': 'length_2d', 'index': ALL}, 'value'),
     State({'type': 'theta_2d', 'index': ALL}, 'value')
 )
-def set_length_2d(n: int, lengths: List[float], angles: List[float]):
+def set_length_2d(n: int, n_clicks: int, lengths: List[float], angles: List[float]):
     
     if (diff := n - len(lengths)) > 0:
         lengths.extend([1] * diff)
         angles.extend([.1] * diff)
+
+    if ctx.triggered_id == 'random_2d':
+        lengths = np.round(np.random.rand(len(lengths)), 1)
+        angles = np.round(np.random.rand(len(angles)) * 2 * np.pi - np.pi, 1)
     
     inputs = [html.Label('Choose the parameters of the links')] + [
         html.Div([
             html.Label(f'Link {i}: L '),
-            dcc.Input(id={'type': 'length_2d', 'index': i}, type='number', value=L, min=0, step=1),
+            dcc.Input(id={'type': 'length_2d', 'index': i}, type='number', value=L, min=0, step=.1),
             html.Label(' θ '),
-            dcc.Input(id={'type': 'theta_2d', 'index': i}, type='number', value=round(theta, 4), step=.1),
+            dcc.Input(id={'type': 'theta_2d', 'index': i}, type='number', value=theta, step=.1),
         ])
         for i, L, theta in zip(range(n), lengths, angles)
     ]
@@ -105,25 +112,31 @@ def plot_2d(lengths: List[float], angles: List[float]):
 @callback(
     Output('parameters_container_3d', 'children'),
     Input('n_fk3d', 'value'),
+    Input('random_3d', 'n_clicks'),
     State({'type': 'length_3d', 'index': ALL}, 'value'),
     State({'type': 'theta_3d', 'index': ALL}, 'value'),
     State({'type': 'phi_3d', 'index': ALL}, 'value')
 )
-def set_length_3d(n: int, lengths: List[float], thetas: List[float], phis: List[float]):
+def set_length_3d(n: int, n_clicks: int, lengths: List[float], thetas: List[float], phis: List[float]):
     
     if (diff := n - len(lengths)) > 0:
         lengths.extend([1] * diff)
         thetas.extend([.1] * diff)
         phis.extend([.1] * diff)
     
+    if ctx.triggered_id == 'random_3d':
+        lengths = np.round(np.random.rand(len(lengths)), 1)
+        thetas = np.round(np.random.rand(len(thetas)) * 2 * np.pi - np.pi, 1)
+        phis = np.round(np.random.rand(len(phis)) * 2 * np.pi - np.pi, 1)
+    
     inputs = [html.Label('Choose the parameters of the links')] + [
         html.Div([
             html.Label(f'Link {i}: L '),
-            dcc.Input(id={'type': 'length_3d', 'index': i}, type='number', value=L, min=0, step=1),
+            dcc.Input(id={'type': 'length_3d', 'index': i}, type='number', value=L, min=0, step=.1),
             html.Label(' θ '),
-            dcc.Input(id={'type': 'theta_3d', 'index': i}, type='number', value=round(theta, 4), step=.1),
+            dcc.Input(id={'type': 'theta_3d', 'index': i}, type='number', value=theta, step=.1),
             html.Label(' φ '),
-            dcc.Input(id={'type': 'phi_3d', 'index': i}, type='number', value=round(phi, 4), step=.1),
+            dcc.Input(id={'type': 'phi_3d', 'index': i}, type='number', value=phi, step=.1),
         ])
         for i, L, theta, phi in zip(range(n), lengths, thetas, phis)
     ]

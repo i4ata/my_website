@@ -6,6 +6,7 @@ import random as rd
 import numpy as np
 
 from pages.three_body_problem.three_body_problem import run_euler
+from utils import updatemenu
 
 with open('pages/three_body_problem/text.md') as f:
     text = f.readlines()
@@ -178,7 +179,6 @@ def _plot_values(x: np.ndarray, v: np.ndarray, a: np.ndarray) -> go.Figure:
         fig.update_yaxes(title=name, row=i)
     return fig
 
-
 def _plot(x: np.ndarray, animate: bool) -> go.Figure:
     t, n, d = x.shape
     fig = go.Figure()
@@ -216,11 +216,13 @@ def _plot(x: np.ndarray, animate: bool) -> go.Figure:
             for frame in range(t)
         ]
 
+    nbp_menu = updatemenu
+    nbp_menu['buttons'][0]['args'][1]['frame']['duration'] = 2 # Set to 2ms per frame
     fig.update_layout(
         title=f'Simulation of {n} bodies in {d}D', 
         showlegend=False, 
         autosize=True, height=1000, width=1000,
-        updatemenus=[updatemenu] if animate else []
+        updatemenus=[nbp_menu] if animate else []
     )
 
     if d == 2:
@@ -237,41 +239,3 @@ def _plot(x: np.ndarray, animate: bool) -> go.Figure:
             }
         )
     return fig
-  
-_play_button = {
-    'label': 'Play', 
-    'method': 'animate',
-    'args': [
-        None,
-        {
-            'mode': 'immediate',
-            'frame': {'duration': 2, 'redraw': True},
-            'fromcurrent': True
-        }
-    ]
-}
-
-_pause_button = {
-    'label': 'Pause',
-    'method': 'animate',
-    'args': [
-        [None], 
-        {
-            'mode': 'immediate',
-            'frame': {'duration': 0, 'redraw': True},
-            'fromcurrent': True
-        }
-    ]
-}
-
-updatemenu = {
-    'buttons': [_play_button, _pause_button],
-    'direction': 'left',
-    'pad': {'r': 10, 't': 70},
-    'showactive': False,
-    'type': 'buttons',
-    'x': 0.1,
-    'xanchor': 'right',
-    'y': 1.,
-    'yanchor': 'top'            
-}

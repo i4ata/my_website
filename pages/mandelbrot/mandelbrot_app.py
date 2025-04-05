@@ -35,12 +35,12 @@ layout = html.Div([
         dcc.Input(id='iterations', type='number', value=50, step=10, min=10, max=100)
     ]),
     
-    # The Mandelbrot Set image as a heatmap
-    dcc.Loading(id='loading', children=dcc.Graph(id='heatmap')),
-    
     # Buttons for generating and resetting the Mandelbrot Set heatmap
     html.Button('Generate', id='generate'),
     html.Button('Reset', id='reset'),
+
+    # The Mandelbrot Set image as a heatmap
+    dcc.Loading(id='loading', children=dcc.Graph(id='heatmap')),
 
     # The graph for the evolution of a specific number c
     html.Div(id='graph_evolution')

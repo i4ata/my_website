@@ -38,7 +38,7 @@ class BSpline:
         - x (numpy.ndarray): An array of shape [m], the input
 
         Returns:
-        - numpy.ndarray: Shape [n, m], element ij is the contribution of element i on point j in x
+        - numpy.ndarray: Shape [n, m], element ij is the contribution of element i on x_j
         """
         
         components = [self._rec_call(x, self.p, i, self.t) for i in range(self.n)]
@@ -52,7 +52,7 @@ class BSpline:
         - x (numpy.ndarray): An array of shape [m], the input
 
         Returns:
-        - numpy.ndarray: Shape [n, m], element ij is the contribution of element i on point j in x
+        - numpy.ndarray: Shape [n, m], element ij is the contribution of element i on x_j
         """
 
         components = [
