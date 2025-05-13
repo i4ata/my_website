@@ -60,13 +60,7 @@ Inputs:
 
 Outputs:
 
-- The mandelbrot set as a matrix $M$ of evenly spaced complex numbers such that $M_{xy}$ is the number of iterations it takes for the magnitude of the corresponding complex number $c_{xy}$, formally defined as:
-
-$$
-\text{Re}(c_{xy})=x_{\min}+x\frac{x_{\max}-x_{\min}}{w-1}, \quad \text{Im}(c_{xy})=y_{\min}+\frac{y_{\max}-y_{\min}}{h-1},
-$$
-
-to diverge. If it does not diverge, $M_{xy}=n$.
+- The mandelbrot set as a matrix $M$ of evenly spaced complex numbers such that $M_{xy}$ is the number of iterations it takes for the magnitude of the corresponding complex number $c_{xy}$ to diverge. If it does not diverge, $M_{xy}=n$.
 
 Step 1: Define all numbers to consider $C$ using the definition above.
 
@@ -139,4 +133,4 @@ This project utilizes vectorized operations from NumPy to efficiently update the
 
 ## Interaction
 
-Below one can interact with the Mandelbrot set. You can zoom in infinitely and click on the image to see the trajectory of the corresponding number throughout the iterations!
+Below one can interact with the Mandelbrot set. You can zoom in infinitely by inscribing a rectangle or click on the image to see the trajectory of the corresponding number throughout the iterations!

@@ -15,7 +15,7 @@ with open('assets/kan/nn.pkl', 'rb') as f:
     kan_layers: List[Tuple[np.ndarray, int, int]] = pickle.load(f)
     n_layers = len(kan_layers)
 
-register_page(__name__, path='/kan')
+register_page(__name__, path='/kan', name='Kolmogorov-Arnold Networks', order=3)
 
 def get_training() -> go.Figure:
     preds = np.squeeze(np.load('assets/kan/y_pred.npy'))
@@ -52,7 +52,7 @@ def get_kan():
     return data
 
 layout = html.Div([
-    dcc.Markdown(text[0], mathjax=True),
+    dcc.Markdown(text[0], mathjax=True, link_target='_blank'),
     html.Div([
         html.Label('Number of basis elements'),
         html.Br(),
@@ -69,9 +69,9 @@ layout = html.Div([
     html.Button('Random', id='random_weights'),
     dcc.Graph(id='basis_elements'),
     html.Label(id='error'),
-    dcc.Markdown(text[1], mathjax=True),
+    dcc.Markdown(text[1], mathjax=True, link_target='_blank'),
     dcc.Graph(figure=get_training()),
-    dcc.Markdown(text[2], mathjax=True),
+    dcc.Markdown(text[2], mathjax=True, link_target='_blank'),
     cyto.Cytoscape(
         id='nn',
         elements=get_kan(),

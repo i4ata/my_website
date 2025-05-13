@@ -9,51 +9,45 @@ from pages.three_body_problem.three_body_problem import run_euler
 from utils import updatemenu
 
 with open('pages/three_body_problem/text.md') as f:
-    text = f.readlines()
+    text = f.read()
 
-register_page(__name__, path='/3bp')
+register_page(__name__, path='/3bp', name='The N-Body Problem', order=2)
 
 layout = html.Div([
-    dcc.Markdown(text, mathjax=True),
+    dcc.Markdown(text, mathjax=True, link_target='_blank'),
     html.Div([
         html.Label('Choose dimensions'),
         dcc.RadioItems(id='dims', value=2, options=(2,3))
     ]),
     html.Br(),
     html.Div([
-        html.Label('Choose the number of bodies'),
-        html.Br(),
+        html.Label('Choose the number of bodies'), html.Br(),
         dcc.Input(id='n', type='number', value=3, min=1, step=1)
     ]),
     html.Br(),
     html.Div([
-        html.Label("Choose the bodies' parameters"),
-        dash_table.DataTable(id='table', editable=True),
-        html.Br(),
-        html.Button('Reset', id='reset')
+        html.Label("Choose the bodies' parameters by editing the table"),
+        dash_table.DataTable(id='table', editable=True,),
+        html.Br(), html.Button('Reset', id='reset')
     ]),
     html.Br(),
     html.Div([
-        html.Label('Step size'),
-        html.Br(),
+        html.Label('Step size'), html.Br(),
         dcc.Input(id='step', type='number', value=0.005, min=0, step=0.001)
     ]),
     html.Br(),
     html.Div([
-        html.Label('Total timesteps'),
-        html.Br(),
+        html.Label('Total timesteps'), html.Br(),
         dcc.Input(id='max_t', type='number', value=1000, min=0, step=1)
     ]),
     html.Br(),
     html.Div([
-        html.Label('G'),
-        html.Br(),
+        html.Label('G'), html.Br(),
         dcc.Input(id='G', type='number', value=1, min=0, step=0.1)
     ]),
     html.Br(),
     html.Div([
-        html.Label('Maximum acceleration magnitude'),
-        html.Br(),
+        html.Label('Maximum acceleration magnitude'), html.Br(),
         dcc.Input(id='max_magnitude', type='number', value=15, min=0, step=1)
     ]),
     html.Br(),
@@ -61,10 +55,7 @@ layout = html.Div([
         html.Label('Animate'),
         dcc.RadioItems(
             id='animate', value=False, 
-            options=[
-                {'label': 'Static', 'value': False},
-                {'label': 'Animated', 'value': True}
-            ]
+            options=[{'label': 'Static', 'value': False}, {'label': 'Animated', 'value': True}]
         )
     ]),
     html.Br(),

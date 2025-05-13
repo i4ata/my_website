@@ -1,16 +1,31 @@
 img[src*="#jit_img"] {
-    width:40%;
-    height:auto;
+  width:40%;
+  height:auto;
 }
 
 img[src*="#mandelbrot_img"] {
-    width:100%;
-    height:auto;
+  width:100%;
+  height:auto;
+}
+
+img[src*="#example_predictions"] {
+  width:70%;
+  height:auto;
+}
+
+img[alt="training"] {
+  width:70%;
+  height:auto;
+}
+
+img[alt="rpi"] {
+  width:30%;
+  height:auto;
 }
 
 #heatmap {
-    width: 90vw;
-    height: 90vh;
+  width: 90vw;
+  height: 90vh;
 }
 
 

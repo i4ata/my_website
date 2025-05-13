@@ -13,26 +13,26 @@ from utils import slider, updatemenu
 with open('pages/mandelbrot/text.md') as f:
     text = f.read()
 
-register_page(__name__, path='/mandelbrot')
+register_page(__name__, path='/mandelbrot', name='The Mandelbrot Set', order=4)
 
 # LAYOUT OF THE APP
 layout = html.Div([
 
     # The text
-    dcc.Markdown(text, mathjax=True),
+    dcc.Markdown(text, mathjax=True, link_target='_blank'),
     
     # Parameters
     html.Div([
-        html.Label('Height:'), 
-        dcc.Input(id='height', type='number', value=500, step=10, min=100)
+        html.Label('Height:'), html.Br(),
+        dcc.Input(id='height', type='number', value=500, step=10, min=100), html.Br()
     ]),
     html.Div([
-        html.Label('Width: '),
-        dcc.Input(id='width', type='number', value=500, step=10, min=100)
+        html.Label('Width: '), html.Br(),
+        dcc.Input(id='width', type='number', value=500, step=10, min=100), html.Br()
     ]),
     html.Div([
-        html.Label('Maximum Iterations: '),
-        dcc.Input(id='iterations', type='number', value=50, step=10, min=10, max=100)
+        html.Label('Maximum Iterations:'), html.Br(),
+        dcc.Input(id='iterations', type='number', value=50, step=10, min=10, max=100), html.Br()
     ]),
     
     # Buttons for generating and resetting the Mandelbrot Set heatmap

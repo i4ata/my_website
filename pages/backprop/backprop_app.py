@@ -1,13 +1,10 @@
 from dash import Input, Output, State, dcc, html, register_page, callback
 import plotly.graph_objects as go
 import numpy as np
-import dash_cytoscape as cyto
 np.random.seed(1)
 
-from pages.backprop.backprop import NN, Linear
+from pages.backprop.backprop import NN
 from utils import slider, updatemenu
-
-# TODO: THE EDGES' LABELS APPEAR BEHIND THE EDGES
 
 nn_styles = [
     {'selector': 'node', 'style': {'label': '', 'font-size': '30'}},
@@ -17,10 +14,10 @@ nn_styles = [
 with open('pages/backprop/text.md') as f:
     text = f.read()
 
-register_page(__name__, path='/backprop')
+register_page(__name__, path='/backprop', name='Backpropagation', order=5)
 
 layout = html.Div([
-    dcc.Markdown(text, mathjax=True),
+    dcc.Markdown(text, mathjax=True, link_target='_blank'),
     html.Div([
         html.Label('Activation Function'),
         html.Br(),

@@ -255,7 +255,7 @@ Here we can conveniently use `np.einsum`, which pretty much directly translates 
 
 ## Implementation details
 
-The B-splines are defined only over a specific range (in our case [-1, 1]) even though the output of a FC layer is unbounded. To keep the implementation simple, I apply the $\tanh$ function element-wise to the output of each layer, ensuring that the output is in the range [-1, 1]. The authors also propose that as a solution to this problem, however, they develop a procedure to dynamically extend the grid such that it matches the input shape.
+The B-splines are defined only over a specific range (in our case $[-1, 1]$) even though the output of a FC layer is unbounded. To keep the implementation simple, I apply the $\tanh$ function element-wise to the output of each layer, ensuring that the output is in the range $[-1, 1]$. The authors also propose that as a solution to this problem, however, they develop a procedure to dynamically extend the grid such that it matches the input shape.
 
 The $\tanh$ layer is defined as follows:
 

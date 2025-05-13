@@ -3,7 +3,7 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 import math
-from typing import List, Optional
+from typing import List
 
 from pages.jit.jit import fk_2d, fk_3d, JIT
 from utils import slider, updatemenu
@@ -11,13 +11,13 @@ from utils import slider, updatemenu
 with open('pages/jit/text.md') as f:
     text = f.read().split('<!-- INTERACTION -->')
 
-register_page(__name__, path='/jit')
+register_page(__name__, path='/jit', name='Jacobian Inverse Technique', order=1)
 
 _hover_suffix = '<br>x: %{x}<br>y: %{y}<extra></extra>'
 _color_palette = px.colors.qualitative.Plotly
 
 layout = html.Div([
-    dcc.Markdown(text[0], mathjax=True),
+    dcc.Markdown(text[0], mathjax=True, link_target='_blank'),
     # FK2D
     html.Div([
         html.Label('Choose the number of joints'),
@@ -31,7 +31,7 @@ layout = html.Div([
     html.Div(id='graph_fk_2d'),
     html.Br(),
 
-    dcc.Markdown(text[1], mathjax=True),
+    dcc.Markdown(text[1], mathjax=True, link_target='_blank'),
     # FK3D
     html.Div([
         html.Label('Choose the number of joints'),
@@ -45,7 +45,7 @@ layout = html.Div([
     html.Div(id='graph_fk_3d'),
     html.Br(),
     
-    dcc.Markdown(text[2], mathjax=True),
+    dcc.Markdown(text[2], mathjax=True, link_target='_blank'),
     # JIT
     html.Div([
         html.Label('Choose dimensions of the system'),
