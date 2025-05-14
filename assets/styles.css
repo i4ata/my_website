@@ -28,6 +28,12 @@ img[alt="rpi"] {
   height: 90vh;
 }
 
+img[src*="#icon"] {
+  width: auto;
+  height: 3em;
+}
+
+@import url('https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css');
 
 /* TO DISPLAY THE MARKDOWN TABLES PROPERLY: https://community.plotly.com/t/tables-in-markdown/15823/8 */
 table {
