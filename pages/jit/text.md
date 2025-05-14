@@ -39,7 +39,6 @@ def fk_2d(lengths: np.ndarray, angles: np.ndarray) -> np.ndarray:
 
     # Initialize the accumulators
     x, y, theta = np.zeros(shape=(3, *angles.shape[:-1]))
-    if save_all: xs, ys, thetas = [x.copy()], [y.copy()], [theta]
     
     # Accumulate for each link in the system
     for i in range(lengths.shape[-1]):
@@ -140,7 +139,7 @@ The inputs are:
     fk = fk_2d if dimensions == 2 else fk_3d
 ```
 
-Start off with a random prediction for the angles $\hat{\omega}_0$ of shape $(B,N)$ for the 2D case and $(B,2N)$ for the 3D case. In my case, each angle is uniformly sampled from the range $[-\pi,\pi]$. Let $p:\mathbb{R}^{\{N,2N\}}\to\mathbb{R}^{\{2,3\}}$ be the forward kinematics function for the corresponding number of dimensions (either `fk_2d` or `fk_3d`). The goal is to find the angles $\omega^*$ which minimize the error $||p(\omega^*)-\xi||$. Usually there are multiple solutions to the backward kinematics problem, i.e. there are multiple joint configurations $\omega^*$ which result in the desired endeffector position $\xi$. The Jacobian Inverse Technique finds the solution that is closest to the initial random angles $\hat{\omega}_0$.
+Start off with a random prediction for the angles $\hat{\omega}_0$ of shape $(B,N)$ for the 2D case and $(B,2N)$ for the 3D case. In my case, each angle is uniformly sampled from the range $[-\pi,\pi]$. Let $p:\mathbb{R}^{\{N,2N\}}\to\mathbb{R}^{\{2,3\}}$ be the forward kinematics function for the corresponding number of dimensions (either `fk_2d` or `fk_3d`). The goal is to find the angles $\omega^*$ which minimize the error $||p(\omega^*)-\xi||$. Usually there are multiple solutions to the backward kinematics problem, i.e. there are multiple joint configurations $\omega^*$ which result in the desired endeffector position $\xi$. The Jacobian Inverse Technique finds the solution that is geometrically closest to the initial random angles $\hat{\omega}_0$.
 
 Iteratively execute the next steps:
 

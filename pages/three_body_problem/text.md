@@ -109,7 +109,7 @@ We find all vectors $\mathbf{x}(t)_i-\mathbf{x}(t)_j,i=1,2,\ldots,N,j=1,2,\ldots
     directions = x[:, np.newaxis] - x[:, :, np.newaxis]
     
     # [B, N, N, 1]
-    distances: np.ndarray = np.linalg.norm(directions, axis=3, keepdims=True)
+    distances = np.linalg.norm(directions, axis=3, keepdims=True)
 ```
 
 Here `directions` is a $B\times N\times N\times D$ array such that $\text{directions}_{ijk}$ represents the difference in positions of body $j$ and body $k$, in simulation $i$. The array `distances` is of shape $B\times N\times N\times 1$ and it contains the magnitudes of the vectors, i.e. $d_{ij}=||\mathbf{x}_i-\mathbf{x}_j||$.

@@ -41,7 +41,7 @@ def get_kan():
                 for j in range(len(w))
             ])
         data.extend([
-            {'data': {'id': f'{i}_{j}', 'label': None if i != n_layers - 1 else f'Output {j}'}}
+            {'data': {'id': f'{i}_{j}', 'label': None if i != n_layers - 1 else f'Output {j+1}'}}
             for j in range(w.shape[1])
         ])
         data.extend([
@@ -155,7 +155,7 @@ def plot_basis(n: int, p: int, ws: List[float]):
     xs = np.linspace(spline.t[0]-.2, spline.t[-1]+.2, 1000)
     ys = spline(xs)
 
-    fig = make_subplots(rows=2, shared_xaxes=True)
+    fig = make_subplots(rows=2, shared_xaxes=True, subplot_titles=['B-Spline', 'Basis elements'])
     
     ws = np.nan_to_num(np.array(ws, dtype=float))[:, np.newaxis]
     fig.add_trace(

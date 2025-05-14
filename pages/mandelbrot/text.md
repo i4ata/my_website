@@ -18,7 +18,7 @@ $$
 c_1+c_2=a_1+b_1i+a_2+b_2i=(a_1+a_2)+(b_1+b_2)i
 $$
 
-If the magintude of $z$, i.e. $|z|=\sqrt{a^2+b^2}$, shoots to infinity as we iterate, then $c$ is not a member of the set Otherwise, if it remains bounded by a certain value, then $c$ is a member of the set. Commonly, the number 2 is chosen as a threshold. That is, if at any point the magintude of $z$ exceeds 2, then $c$ is excluded from the set. This is the plot for different values of $c$ (real part on the x-axis and imaginary part on the y-axis):
+If the magintude of $z$, i.e. $|z|=\sqrt{a^2+b^2}$, shoots to infinity as we iterate, then $c$ is not a member of the set. Otherwise, if it remains bounded by a certain value, then $c$ is a member of the set. Commonly, the number 2 is chosen as a threshold. That is, if at any point the magintude of $z$ exceeds 2, then $c$ is excluded from the set. This is the plot for different values of $c$ (real part on the x-axis and imaginary part on the y-axis):
 
 ![MandelbrotSetViz](../../assets/mandelbrot/image.png#mandelbrot_img)
 
@@ -36,7 +36,7 @@ Some example trajectories are shown below:
 |   $z_6$   |  $-1+0i$  |$-0.100-0.752i$ |$-72584073+105255653i$ |
 | $\ldots$  | $\ldots$  |    $\ldots$    |  $\ldots$  |
 
-It can be seen that $c=-1+0i$ oscillates between 2 values, $c=-0.1-0.75i$ exhibits a chaotic behavior but still remains bounded, whereas the magnitude of $c=-1-1i$ quickly explodes to very high values.
+<br>It can be seen that $c=-1+0i$ oscillates between 2 values, $c=-0.1-0.75i$ exhibits a chaotic behavior but still remains bounded, whereas the magnitude of $c=-1-1i$ quickly explodes to very high values.
 
 ## Code
 
@@ -62,7 +62,7 @@ Outputs:
 
 - The mandelbrot set as a matrix $M$ of evenly spaced complex numbers such that $M_{xy}$ is the number of iterations it takes for the magnitude of the corresponding complex number $c_{xy}$ to diverge. If it does not diverge, $M_{xy}=n$.
 
-Step 1: Define all numbers to consider $C$ using the definition above.
+**Step 1**: Define all numbers to consider $C$ using the definition above.
 
 ```python
     C = (
@@ -71,19 +71,19 @@ Step 1: Define all numbers to consider $C$ using the definition above.
     )
 ```
 
-Step 2: Initialize all numbers $Z$, which would keep track of the evolution of the numbers $C$.
+**Step 2**: Initialize all numbers $Z$, which would keep track of the evolution of the numbers $C$.
 
 ```python
     Z = np.zeros_like(C)
 ```
 
-Step 3: Initialize the Mandelbrot set $M$, which would keep the status of the numbers $C$. Initially, all numbers are in the set ($M=n$) and are continuously excluded as we iterate. As mentioned before in the end $M_{xy}$ will be equal to the number of iterations it takes for $c_{xy}$ to diverge.
+**Step 3**: Initialize the Mandelbrot set $M$, which would keep the status of the numbers $C$. Initially, all numbers are in the set ($M=n$) and are continuously excluded as we iterate. As mentioned before, in the end $M_{xy}$ will be equal to the number of iterations it takes for $c_{xy}$ to diverge.
 
 ```python
     M = np.full_like(C, fill_value=max_iter, dtype=np.uint8)
 ```
 
-Step 4: Initialize 2 boolean matrices:
+**Step 4**: Initialize 2 boolean matrices:
 
 - `not_diverged` keeps track of the numbers that still have not diverged before the start of the current iteration
 - `diverged` keeps track of the numbers that diverge in the current iteration.
@@ -93,31 +93,31 @@ Step 4: Initialize 2 boolean matrices:
     diverged = np.zeros_like(C, dtype=bool)
 ```
 
-Step 5: Iteratively update the set.
+**Step 5**: Iteratively update the set.
 
 ```python
     for n in tqdm(range(max_iter)):
 ```
 
-Step 6: Update the values of $Z$ for the numbers currently inside the set using the rule $z_{xy}\gets z_{xy}^2+c_{xy}$
+**Step 6**: Update the values of $Z$ for the numbers currently inside the set using the rule $z_{xy}\gets z_{xy}^2+c_{xy}$
 
 ```python
         Z[not_diverged] = Z[not_diverged] ** 2 + C[not_diverged]
 ```
 
-Step 7: Find the values of $Z$ inside the set that just diverged, which are the numbers with magnitudes exceeding 2.
+**Step 7**: Find the values of $Z$ inside the set that just diverged, which are the numbers with magnitudes exceeding 2.
 
 ```python
         diverged[not_diverged] = Z[not_diverged].abs() > 2
 ```
 
-Step 8: Update the values of the numbers that just diverged from the set.
+**Step 8**: Update the values of the numbers that just diverged from the set.
 
 ```python
         M[not_diverged & diverged] = n
 ```
 
-Step 9: Record the numbers that just diverged.
+**Step 9**: Record the numbers that just diverged.
 
 ```python
         not_diverged &= ~diverged
