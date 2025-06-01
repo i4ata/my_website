@@ -67,13 +67,13 @@ The inputs to the function `run_euler` are:
 - `step`: The value of $\Delta t$.
 - `max_t`: The total number of steps in the simluation
 - `G`: Newton's gravitational constant (comes later)
-- `max_magnitude`: The maximum acceleration magnitude allowed in the simulation
+- `max_magnitude`: The optional maximum acceleration magnitude allowed in the simulation. Explained further in step 4.
 
 The code makes use of vecotirzed operations on arrays in Numpy to efficiently run many simulations in parallel.
 
 ## Acceleration Computation
 
-The key of the simulations is calculating the accelerations $\mathbf{a}(t)$, which is done with the function `_compute_acceleration`, called in the code snippet above. To find them, we use Newton's law of universal gravitation, which states that the gravitational force applied to 2 bodies with respect to each other is defined as:
+The key of the simulations is calculating the accelerations $\mathbf{a}(t)$, which is done with the function `_compute_acceleration`, called in the code snippet above. To find them, we use Newton's law of universal gravitation, which states that the gravitational force ($F$) applied to 2 bodies with respect to each other is defined as:
 
 $$
 F=G\frac{m_1m_2}{d^2}
@@ -174,7 +174,7 @@ def _clamp_magnitude(a: np.ndarray, max_magnitude: float = 15) -> np.ndarray:
     return a
 ```
 
-Here the input `a` is the accelerations calculated from before, and the `max_magnitude` parameter defines the upper bound of the acceleration magnitudes. Intuitively, we set the magnitude of each acceleration $\mathbf{a}(t)_i$ to $\min(||\mathbf{a}(t)_i||,\text{max\_magnitude})$
+Here the input `a` is the accelerations calculated from before, and the `max_magnitude` parameter defines the upper bound of the acceleration magnitudes. Intuitively, we set the magnitude of each acceleration $\mathbf{a}(t)_i$ to $\min(||\mathbf{a}(t)_i||,\text{max_magnitude})$
 
 Overall, this way of calculating the accelerations makes use of NumPy vectorized operations to efficiently process a batch of $B$ systems with an arbitrary number of bodies $N$ and arbitrary number of dimensions $D$. As a benchmark, on my PC, 3D trajectories of a 100-body system for 5000 steps are calculated in 2 seconds. The operations can also greatly benefit from using GPUs.
 

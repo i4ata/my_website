@@ -19,7 +19,7 @@ register_page(__name__, path='/mandelbrot', name='The Mandelbrot Set', order=4)
 layout = html.Div([
 
     # The text
-    dcc.Markdown(text, mathjax=True, link_target='_blank'),
+    dcc.Markdown(text, mathjax=True, link_target='_blank', dangerously_allow_html=True),
     
     # Parameters
     html.Div([

@@ -1,12 +1,11 @@
 import numpy as np
-from collections import defaultdict
 from typing import Callable, List, Union, Tuple
 from tqdm.auto import tqdm
 import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', type=float, default=.01, help='Learning rate of the Neural Network')
+    parser.add_argument('--lr', type=float, default=.001, help='Learning rate of the Neural Network')
     parser.add_argument('--activation', type=str, choices=['relu', 'tanh'], default='relu', help='Activation function of the layers')
     parser.add_argument('--n_layers', type=int, default=1, help='Number of hidden layers')
     parser.add_argument('--size', type=int, default=16, help='Number of neurons in each hidden layer')
@@ -42,10 +41,10 @@ class Linear(Layer):
         super().__init__(lr)
 
         # weights W
-        self.W = np.random.randn(n, m)# * .1
+        self.W = np.random.randn(n, m)
         
         # bias b
-        self.b = np.random.randn(1, m)# * .1
+        self.b = np.random.randn(1, m)
     
     def forward(self, x: np.ndarray) -> np.ndarray:
         """Forward pass: y = xW + b"""
@@ -62,7 +61,7 @@ class Linear(Layer):
         dEdW = self.x.T @ dEdy
 
         # The error with respect to the bias
-        dEdb = dEdy
+        dEdb = dEdy.mean(axis=0)
 
         # The error with respect to the input
         dEdx = dEdy @ self.W.T
@@ -109,7 +108,7 @@ def relu(x: np.ndarray) -> np.ndarray:
     return np.maximum(0, x)
 
 def relu_prime(x: np.ndarray) -> np.ndarray:
-    return x > 0
+    return (x > 0).astype(float)
 
 def mse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return ((y_true - y_pred) ** 2).mean()
@@ -156,42 +155,29 @@ class NN:
         """Train the NN"""
 
         if store_all: 
-            predictions = defaultdict(list)
-            preds = [self.predict(x) for x in X]
-            predictions[0] = preds
-            losses = [
-                sum(
-                    self.loss(y_true, y_pred) 
-                    for y_true, y_pred in zip(y, preds)
-                ) / len(X)
-            ]
+            initial_preds = self.predict(X)
+            predictions = [initial_preds]
+            losses = [self.loss(y, initial_preds)]
 
         for epoch in tqdm(range(epochs)):
 
-            # Accumulate the loss (1 value per sample)
-            loss = 0
-
-            # Perform an optimization step for each sample
-            for x, y_true in zip(X, y):
-
-                # Do the forward pass
-                y_pred = self.predict(x)
-                
-                # Calculate the loss
-                loss += self.loss(y_true, y_pred)
-                
-                # Calculate the gradient of the loss with respect to the outputs
-                error = self.loss_prime(y_true, y_pred)
-
-                # Sequentially update the layers with backpropagation
-                for layer in reversed(self.layers): error = layer.backward(error)
-
-                if store_all: predictions[epoch+1].append(y_pred)
+            # Do the forward pass
+            y_pred = self.predict(X)
             
-            if store_all: losses.append(loss / len(X))
+            # Calculate the loss
+            loss = self.loss(y, y_pred)
+            print(loss)
+            # Calculate the gradient of the loss with respect to the outputs
+            error = self.loss_prime(y, y_pred)
+
+            # Sequentially update the layers with backpropagation
+            for layer in reversed(self.layers): error = layer.backward(error)
+
+            if store_all: predictions.append(y_pred)
+            if store_all: losses.append(loss)
 
         if store_all:
-            return np.array(losses), np.squeeze(list(predictions.values()))
+            return np.array(losses), np.stack(predictions)
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
@@ -201,9 +187,10 @@ if __name__ == '__main__':
 
     target_f = {'exp': np.exp, 'log1p': np.log1p, 'sqrt': np.sqrt}[args.target_function]
     nn = NN(activation=args.activation, n_layers=args.n_layers, size=args.size, lr=args.lr)
-    x_train = np.linspace(0, 1, args.n_samples).reshape(-1, 1, 1)
-    y_train = target_f(x_train)
-    nn.fit(x_train, y_train, epochs=args.n_epochs)
+    x_train = np.linspace(0, 1, args.n_samples)[:, np.newaxis]
+    # y_train = target_f(x_train)
+    y_train = np.sin(4 * np.pi * x_train)
+    nn.fit(x_train, y_train, epochs=args.n_epochs, store_all=True)
     
     preds = nn.predict(x_train)
     plt.plot(x_train.squeeze(), preds.squeeze(), label='prediction', linewidth=2, alpha=.7)

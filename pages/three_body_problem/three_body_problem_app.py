@@ -14,7 +14,7 @@ with open('pages/three_body_problem/text.md') as f:
 register_page(__name__, path='/3bp', name='The N-Body Problem', order=2)
 
 layout = html.Div([
-    dcc.Markdown(text, mathjax=True, link_target='_blank'),
+    dcc.Markdown(text, mathjax=True, link_target='_blank', dangerously_allow_html=True),
     html.Div([
         html.Label('Choose dimensions'),
         dcc.RadioItems(id='dims', value=2, options=(2,3))
@@ -27,7 +27,7 @@ layout = html.Div([
     html.Br(),
     html.Div([
         html.Label("Choose the bodies' parameters by editing the table"),
-        dash_table.DataTable(id='table', editable=True,),
+        html.Div(dash_table.DataTable(id='table', editable=True), style={'width': '50%'}),
         html.Br(), html.Button('Reset', id='reset')
     ]),
     html.Br(),
@@ -81,16 +81,17 @@ def set_bodies(d, n, n_clicks, data):
 
     cols = ('x', 'y', 'vx', 'vy', 'M') if d == 2 else ('x', 'y', 'z', 'vx', 'vy', 'vz', 'M')
     get_cols = lambda cols: [{'name': col, 'id': col} for col in cols]
+    rand = lambda: round(rd.random() * 2 - 1, 4)
 
     if ctx.triggered_id in (None, 'reset'):
-        data = [{k: rd.random() * 2 - 1 if k != 'M' else 1. for k in cols} for i in range(n)]
+        data = [{k: rand() if k != 'M' else 1. for k in cols} for i in range(n)]
         return get_cols(cols), data
     
     if ctx.triggered_id == 'n':
         if n <= len(data):
             return no_update, data[:n]
         else:
-            data.extend([{k: rd.random() * 2 - 1 if k != 'M' else 1. for k in cols} for i in range(n-len(data))])
+            data.extend([{k: rand() if k != 'M' else 1. for k in cols} for i in range(n-len(data))])
             return no_update, data
         
     else: # d
@@ -99,8 +100,8 @@ def set_bodies(d, n, n_clicks, data):
             return get_cols(cols), data
         else:
             for i in range(len(data)):
-                data[i]['z'] = rd.random() * 2 - 1
-                data[i]['vz'] = rd.random() * 2 - 1
+                data[i]['z'] = rand()
+                data[i]['vz'] = rand()
             return get_cols(cols), data
     
 @callback(

@@ -145,7 +145,7 @@ class UnetLoss(nn.Module):
         return self.bce_loss(logits, masks) + self.dice_loss(logits, masks)
 ```
 
-The fundamental component of the U-net is the sequence $3\times 3\text{Conv}\to\text{ReLU}\to3\times 3\text{ Conv}\to\text{ReLU}$, defined by 2 blue arrows after one another in the illustration above. In code this can be simply written as follows:
+The fundamental component of the U-net is the sequence $3\times 3\text{ Conv}\to\text{ReLU}\to3\times 3\text{ Conv}\to\text{ReLU}$, defined by 2 blue arrows after one another in the illustration above. In code this can be simply written as follows:
 
 ```python
 class DoubleConv(nn.Module):
@@ -232,8 +232,8 @@ During training the mean loss and IoU are measured. The model's training perform
 
 ![training](../../assets/unet/training.svg)
 
-The used parameters are provided in `params.yaml` with more information. During training, each image is horizontally flipped with probability of 0.5 and vertically flipped with probability 0.5 to diversify the dataset. Naturally, due to the limited data and random initialization, the custom implementation converges before it stops underfitting, therefore, its performance is poor. On the other hand, the pretrained model appears to learn the data well, reaching around 85% validation IoU. The following shows the predictions of my model and the pretrained one on a random image that both models have never seen:
+The used parameters are provided in the `params.yaml` on gthub with more information. During training, each image is horizontally flipped with probability of 0.5 and vertically flipped with probability 0.5 to diversify the dataset. Naturally, due to the limited data and random initialization, the custom implementation converges before it stops underfitting, therefore, its performance is poor. On the other hand, the pretrained model appears to learn the data well, reaching around 85% validation IoU. The following shows the predictions of my model and the pretrained one on a random image that both models have never seen:
 
 ![example_predictions](../../assets/unet/example_predictions.svg#example_predictions)
 
-The custom implementation appears to be doing something right but the pretrained model is pretty good perfect. A demo of both models is shown on [HuggingFace Spaces](https://huggingface.co/spaces/i4ata/CustomUnetSegmentation).
+The custom implementation appears to be doing something right but the pretrained model is pretty good perfect. An interactive demo with both models is shown on [HuggingFace Spaces](https://huggingface.co/spaces/i4ata/CustomUnetSegmentation).

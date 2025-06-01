@@ -52,7 +52,7 @@ def get_kan():
     return data
 
 layout = html.Div([
-    dcc.Markdown(text[0], mathjax=True, link_target='_blank'),
+    dcc.Markdown(text[0], mathjax=True, link_target='_blank', dangerously_allow_html=True),
     html.Div([
         html.Label('Number of basis elements'),
         html.Br(),
@@ -69,9 +69,9 @@ layout = html.Div([
     html.Button('Random', id='random_weights'),
     dcc.Graph(id='basis_elements'),
     html.Label(id='error'),
-    dcc.Markdown(text[1], mathjax=True, link_target='_blank'),
+    dcc.Markdown(text[1], mathjax=True, link_target='_blank', dangerously_allow_html=True),
     dcc.Graph(figure=get_training()),
-    dcc.Markdown(text[2], mathjax=True, link_target='_blank'),
+    dcc.Markdown(text[2], mathjax=True, link_target='_blank',dangerously_allow_html=True),
     cyto.Cytoscape(
         id='nn',
         elements=get_kan(),

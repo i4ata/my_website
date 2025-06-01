@@ -2,15 +2,6 @@
 
 import numpy as np
 from tqdm.auto import tqdm
-import argparse
-
-def parse_args():
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-H', type=float, default=5e-3, help='The constant used to approximate the derivatives of the forward kinematics')
-    parser.add_argument('-t', '--tolerance', type=float, default=1e-3, help='The maximum allowed distance between a solution and the ground truth')
-    parser.add_argument('--max_steps', type=int, default=10, help='The maximum number of iterations of the JIT')
-    return parser.parse_args()
 
 def fk_2d(lengths: np.ndarray, angles: np.ndarray, save_all: bool = False) -> np.ndarray:
     """

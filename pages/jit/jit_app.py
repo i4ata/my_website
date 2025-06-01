@@ -17,7 +17,7 @@ _hover_suffix = '<br>x: %{x}<br>y: %{y}<extra></extra>'
 _color_palette = px.colors.qualitative.Plotly
 
 layout = html.Div([
-    dcc.Markdown(text[0], mathjax=True, link_target='_blank'),
+    dcc.Markdown(text[0], mathjax=True, link_target='_blank', dangerously_allow_html=True),
     # FK2D
     html.Div([
         html.Label('Choose the number of joints'),
@@ -31,7 +31,7 @@ layout = html.Div([
     html.Div(id='graph_fk_2d'),
     html.Br(),
 
-    dcc.Markdown(text[1], mathjax=True, link_target='_blank'),
+    dcc.Markdown(text[1], mathjax=True, link_target='_blank', dangerously_allow_html=True),
     # FK3D
     html.Div([
         html.Label('Choose the number of joints'),
@@ -45,7 +45,7 @@ layout = html.Div([
     html.Div(id='graph_fk_3d'),
     html.Br(),
     
-    dcc.Markdown(text[2], mathjax=True, link_target='_blank'),
+    dcc.Markdown(text[2], mathjax=True, link_target='_blank', dangerously_allow_html=True),
     # JIT
     html.Div([
         html.Label('Choose dimensions of the system'),

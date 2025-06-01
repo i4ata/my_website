@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import numpy as np
 np.random.seed(1)
 
-from pages.backprop.backprop import NN
+from pages.backprop.backprop_batches import NN
 from utils import slider, updatemenu
 
 nn_styles = [
@@ -14,10 +14,10 @@ nn_styles = [
 with open('pages/backprop/text.md') as f:
     text = f.read()
 
-register_page(__name__, path='/backprop', name='Backpropagation', order=5)
+# register_page(__name__, path='/backprop', name='Backpropagation', order=5)
 
 layout = html.Div([
-    dcc.Markdown(text, mathjax=True, link_target='_blank'),
+    # dcc.Markdown(text, mathjax=True, link_target='_blank', dangerously_allow_html=True),
     html.Div([
         html.Label('Activation Function'),
         html.Br(),
@@ -27,19 +27,19 @@ layout = html.Div([
     html.Div([
         html.Label('Number of hidden layers'),
         html.Br(),
-        dcc.Input(id='n_layers', value=2, step=1, min=0, type='number')
+        dcc.Input(id='n_layers', value=4, step=1, min=0, type='number')
     ]),
     html.Br(),
     html.Div([
         html.Label('Number of units per hidden layer'),
         html.Br(),
-        dcc.Input(id='size', value=8, step=1, min=0, type='number')
+        dcc.Input(id='size', value=12, step=1, min=0, type='number')
     ]),
     html.Br(),
     html.Div([
         html.Label('Learning rate'),
         html.Br(),
-        dcc.Input(id='lr', value=0.01, step=.001, min=0, type='number')
+        dcc.Input(id='lr', value=0.1, step=.01, min=0, type='number')
     ]),
     html.Br(),
     html.Div([
@@ -57,7 +57,7 @@ layout = html.Div([
     html.Div([
         html.Label('Number of epochs'),
         html.Br(),
-        dcc.Input(id='epochs', value=5, step=1, min=0, type='number')
+        dcc.Input(id='epochs', value=500, step=1, min=0, type='number')
     ]),
     html.Br(),
     html.Button('Submit', id='submit'),
@@ -79,7 +79,7 @@ def train(n_clicks, activation, n_layers, size, lr, target, n_samples, epochs):
     if n_clicks is None: return None
     nn = NN(n_layers=n_layers, activation=activation, size=size, lr=lr)
     
-    x_train = np.linspace(0, 1, n_samples).reshape(-1, 1, 1)
+    x_train = np.linspace(0, 1, n_samples)[:, np.newaxis]
     y_train: np.ndarray = {
         'sin(4πx)': lambda x: np.sin(x * 4 * np.pi),
         'e^x': np.exp,
@@ -87,30 +87,31 @@ def train(n_clicks, activation, n_layers, size, lr, target, n_samples, epochs):
     }[target](x_train)
     losses, preds = nn.fit(x_train, y_train, epochs=epochs, store_all=True)
     x, y = np.squeeze(x_train), np.squeeze(y_train)
+    preds = preds[:, :, 0]
     fig = go.Figure()
     fig.add_traces([
         go.Scatter(x=x, y=y, mode='markers', name='Ground Truth'),
         go.Scatter(x=x, y=preds[-1], mode='lines', name='Prediction')
     ])
 
-    fig.frames = [
-        go.Frame(
-            data=[{'y': preds[epoch]}], 
-            traces=[1], 
-            layout={'title': f'Neural Network Training | Epoch: {epoch} | Mean Loss: {losses[epoch]:.3f}'},
-            name=str(epoch)
-        ) 
-        for epoch in range(len(losses))
-    ]
+    # TODO: FIX HERE
+    # fig.frames = [
+    #     go.Frame(
+    #         data=[{'y': preds[epoch]}], 
+    #         traces=[1],
+    #         layout={'title': f'Neural Network Training | Epoch: {epoch} | Mean Loss: {losses[epoch]:.3f}'},
+    #         name=str(epoch)
+    #     ) 
+    #     for epoch in range(0, len(losses), 5)
+    # ]
 
-    y_margin = max(abs(y.min()-preds.min()), abs(y.max()-preds.max()))
     fig.update_xaxes(range=[-.1, 1.1])
-    fig.update_yaxes(range=[y.min() - y_margin - .1, y.max() + y_margin + .1])  
+    # fig.update_yaxes(range=[preds.min() - .1, preds.max() + .1])  
 
     nn_menu = updatemenu
     nn_menu['buttons'][0]['args'][1]['frame']['duration'] = 1000 # Set to 1 frame per second
-    fig.update_layout(
-        title=f'Neural Network Training | Epoch: {len(losses)} | Mean Loss: {losses[-1]:.3f}', 
-        updatemenus=[nn_menu], sliders=[slider(len(losses))]
-    )
+    # fig.update_layout(
+    #     title=f'Neural Network Training | Epoch: {len(losses)} | Mean Loss: {losses[-1]:.3f}', 
+    #     updatemenus=[nn_menu], sliders=[slider(len(losses))]
+    # )
     return dcc.Graph(figure=fig)
