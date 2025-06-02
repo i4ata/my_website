@@ -1,0 +1,3 @@
+# Coming soon ...
+
+Here I will upload the project that I developed for the Handwriting Recognition course at the university.
