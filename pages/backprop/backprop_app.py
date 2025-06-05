@@ -14,6 +14,10 @@ nn_styles = [
 with open('pages/backprop/text.md') as f:
     text = f.read()
 
+with open('pages/backprop/text_batches.md') as f:
+    text_batches = f.read()
+
+
 register_page(__name__, path='/backprop', name='Backpropagation', order=5)
 
 layout = html.Div([
@@ -61,7 +65,9 @@ layout = html.Div([
     ]),
     html.Br(),
     html.Button('Submit', id='submit'),
-    html.Div(id='graph')
+    html.Div(id='graph'),
+    html.Br(),
+    dcc.Markdown(text_batches, mathjax=True, link_target='_blank')
 ])
 
 @callback(

@@ -33,6 +33,16 @@ img[src*="#icon"] {
   height: 3em;
 }
 
+img[src*="#hwr"] {
+  width: 90%;
+  border: 2px solid black;
+  box-sizing: border-box;
+}
+
+img[src*="#detection_example"] {
+  width: 50%;
+}
+
 @import url('https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css');
 
 /* TO DISPLAY THE MARKDOWN TABLES PROPERLY: https://community.plotly.com/t/tables-in-markdown/15823/8 */

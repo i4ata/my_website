@@ -489,6 +489,6 @@ The entire training loop can be put in a single simple function as follows:
 
 Here `X` is a matrix where each row is an input sample and each column is a feature, and `y` is a vector representing the ground truth labels for each sample. Also, `epochs` is the number of times the model sees the entire dataset. It can be seen that the model processes and trains on each input independently. In practice, it is useful to use batches, where the model can process multiple outputs at once using efficient vectorized operations. Then, the propagated gradient is averaged over the entire batch. For simplicity (especially the mathy part), this project implements only the single-input gradient descent.
 
-## Interaction
+# Interaction
 
 Try out the neural network itself with the following interaction!
