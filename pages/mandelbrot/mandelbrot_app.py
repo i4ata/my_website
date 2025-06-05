@@ -24,17 +24,24 @@ layout = html.Div([
     # Parameters
     html.Div([
         html.Label('Height:'), html.Br(),
-        dcc.Input(id='height', type='number', value=500, step=10, min=100), html.Br()
+        dcc.Input(id='height', type='number', value=300, step=10, min=100), html.Br()
     ]),
     html.Div([
         html.Label('Width: '), html.Br(),
-        dcc.Input(id='width', type='number', value=500, step=10, min=100), html.Br()
+        dcc.Input(id='width', type='number', value=300, step=10, min=100), html.Br()
     ]),
     html.Div([
         html.Label('Maximum Iterations:'), html.Br(),
-        dcc.Input(id='iterations', type='number', value=50, step=10, min=10, max=100), html.Br()
+        dcc.Input(id='iterations', type='number', value=30, step=10, min=10, max=100), html.Br()
     ]),
-    
+    html.Div([
+        html.Label('Animate'),
+        dcc.RadioItems(
+            id='animate', value=False, 
+            options=[{'label': 'Static', 'value': False}, {'label': 'Animated', 'value': True}]
+        )
+    ]),
+    html.Br(),
     # Buttons for generating and resetting the Mandelbrot Set heatmap
     html.Button('Generate', id='generate'),
     html.Button('Reset', id='reset'),
@@ -52,11 +59,12 @@ layout = html.Div([
     State('height', 'value'),
     State('width', 'value'),
     State('iterations', 'value'),
+    State('animate', 'value'),
     Input('heatmap', 'relayoutData'),
     Input('generate', 'n_clicks'),
     Input('reset', 'n_clicks')
 )
-def generate(height, width, iterations, data, generate, reset):
+def generate(height, width, iterations, animate, data, generate, reset):
     """
     Call to generate the Mandelbrot Set heatmap
     """
@@ -83,13 +91,13 @@ def generate(height, width, iterations, data, generate, reset):
         range_imag=(y_min, y_max),
         dims=(height, width),
         max_iter=iterations,
-        save_all=True
+        save_all=animate
     )
 
     # Draw the heatmap
     fig = px.imshow(
         mandelbrot,
-        animation_frame=0,
+        animation_frame=0 if animate else None,
         x=np.linspace(x_min, x_max, width),
         y=np.linspace(y_min, y_max, height),
         aspect='equal',
@@ -102,9 +110,10 @@ def generate(height, width, iterations, data, generate, reset):
     )
     fig.update_layout(coloraxis_showscale=False, autosize=True, height=1000, width=1000)
     
-    fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
-    fig.layout.updatemenus[0]['buttons'][0]['label'] = 'Play'
-    fig.layout.updatemenus[0]['buttons'][1]['label'] = 'Pause'
+    if animate:
+        fig.layout.sliders[0]['currentvalue']['prefix'] = 'Iteration: '
+        fig.layout.updatemenus[0]['buttons'][0]['label'] = 'Play'
+        fig.layout.updatemenus[0]['buttons'][1]['label'] = 'Pause'
     return fig
 
 @callback(
