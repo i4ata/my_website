@@ -1,4 +1,4 @@
-from dash import Input, Output, State, dcc, html, dash_table, no_update, Patch, ctx, register_page, callback
+from dash import Input, Output, State, dcc, html, dash_table, no_update, Patch, ctx, register_page, callback, clientside_callback
 from dash.exceptions import PreventUpdate
 from dash.dash_table.Format import Format
 import pandas as pd
@@ -26,122 +26,149 @@ with open('pages/sebra/text.md') as f:
 layout = html.Div([
     dcc.Markdown(text, link_target='_blank', dangerously_allow_html=True),
     # dcc.Graph(figure=plot_treemap()),
-    html.Div([
-        dcc.Graph(id='pie', figure=make_pies(), style={'width': '50%', 'height': 650}),
-        dcc.Graph(id='bar', figure=compare_codes(), style={'width': '50%'})
-    ], style={'display': 'flex'}),
-    dcc.Store(id='code_selection'),
-    html.Div(
-        children=[
-            html.Div(
-                children=[
-                    html.P('Choose one from the group with rarely occuring codes:'),
-                    dcc.RadioItems(id='sebra_other_radio')
-                ],
-                id='sebra_other_container',
-                hidden=True
-            ),
-            html.Div(id='sebra_summary'),
-            html.Div(
-                children=[
-                    html.P('Most paying organizations'),
-                    dash_table.DataTable(id='sebra_orgs_table'),
-                    html.Br(), html.Button('Select a specific organization', id='org_selection_button'),
-                    html.Div(
-                        children=[
-                            html.P(id='orgs_filter_summary'),
-                            html.Label('Minimum Total Amount: '), dcc.Input(id='orgs_min_amount', type='number', min=0, step=1_000),
-                            html.Label(' Minimum Number of Payments: '), dcc.Input(id='orgs_min_payments', type='number', min=0, step=1),
-                            html.Br(),
-                            html.Label('Maximum Total Amount: '), dcc.Input(id='orgs_max_amount', type='number', min=0, step=1_000),
-                            html.Label(' Maximum Number of Payments: '), dcc.Input(id='orgs_max_payments', type='number', min=0, step=1),
-                            html.Br(),
-                            dcc.Dropdown(id='primary_orgs_selection', placeholder='Select a Primary Organization ...'),
-                            html.Br(),
-                            html.Button('Submit', id='submit_org_filter'),
-                            html.P(id='orgs_filter_output_summary')
-                        ],
-                        id='sebra_filter_orgs',
-                        hidden=True
-                    )
-                ],
-                id='sebra_orgs_container',
-                hidden=True
-            ),
-            html.Div(
-                children=[
-                    html.Br(),
-                    dcc.Dropdown(id='sebra_orgs_dropdown'),
-                    dash_table.DataTable(id='sebra_specific_org_table')
-                ],
-                id='sebra_individual_org_container',
-                hidden=True,
-            ),
-            html.Div(
-                children=[
-                    html.Br(),
-                    html.P('Most receiving clients'),
-                    dash_table.DataTable(id='sebra_clients_table'),
-                    html.Br(),
-                    html.Button('Select a specific client', id='client_selection_button'),
-                    html.Div(
-                        children=[
-                            html.P(id='clients_filter_summary'),
-                            html.Label('Minimum Total Amount: '), dcc.Input(id='clients_min_amount', type='number', min=0, step=1_000),
-                            html.Label(' Minimum Number of Payments: '), dcc.Input(id='clients_min_payments', type='number', min=0, step=1),
-                            html.Br(),
-                            html.Label('Maximum Total Amount: '), dcc.Input(id='clients_max_amount', type='number', min=0, step=1_000),
-                            html.Label(' Maximum Number of Payments: '), dcc.Input(id='clients_max_payments', type='number', min=0, step=1),
-                            html.Br(),
-                            html.Button('Submit', id='submit_client_filter'),
-                            html.P(id='clients_filter_output_summary')
-                        ],
-                        id='sebra_filter_clients',
-                        hidden=True
-                    )
-                ],
-                id='sebra_clients_container',
-                hidden=True
-            ),
-            html.Div(
-                children=[
-                    html.Br(),
-                    dcc.Dropdown(id='sebra_clients_dropdown'),
-                    dash_table.DataTable(id='sebra_specific_client_table')
-                ],
-                id='sebra_individual_client_container',
-                hidden=True,
-            ),
-        ],
-        id='pie_info',
-        hidden=True
-    ),
-    html.Div([
-        html.H2('Payments Over Time'),
-        dcc.Graph(id='time_series', figure=make_time_series()),
-        dcc.Checklist(id='time_series_options', options=['Log scale', 'Hide weekends & holidays'])
-    ]),
-    html.Div([
-        html.H2('Payments Per Day of the Week'),
-        dcc.Graph(figure=compare_weekdays())
-    ]),
-    html.Div([
-        html.H2('Primary Organizations'),
-        html.P('Click on the points to see more details about that organization.'),
-        dcc.Graph(id='primary_orgs', figure=plot_primary_orgs(), mathjax=True),
-    ]),
-    html.Div(id='primary_orgs_output'),
-    html.P('Run an arbitrary SQL query on the data'),
-    dcc.Textarea(
-        id='query', 
-        value=example_query,
-        style={'width': '60%', 'height': 200}
-    ), html.Br(),
-    html.Button('Submit', id='submit'),
-    html.P(id='query_feedback'),
-    dash_table.DataTable(id='query_result'),
-    html.Button('Download result as CSV', id='download_button'),
-    dcc.Download(id='download_query'),
+    dcc.Tabs(style={'overflow': 'hidden', 'scroll-behavior': 'unset'},children=[
+        dcc.Tab(
+            children=[
+                html.H2('SEBRA Pay Codes'),
+                html.P("Click on the pies' sectors or the bars to get more information about the payments for different categories."),
+                html.Div(
+                    children=[
+                    dcc.Graph(id='pie', figure=make_pies(), style={'width': '50%', 'height': 650}),
+                    dcc.Graph(id='bar', figure=compare_codes(), style={'width': '50%'})
+                    ], 
+                    style={'display': 'flex'}
+                ),
+                dcc.Store(id='code_selection'),
+                html.Div(
+                    children=[
+                        html.Div(
+                            children=[
+                                html.P('Choose one from the group with rarely occuring codes:'),
+                                dcc.RadioItems(id='sebra_other_radio')
+                            ],
+                            id='sebra_other_container',
+                            hidden=True
+                        ),
+                        html.Div(id='sebra_summary'),
+                        html.Div(
+                            children=[
+                                html.P('Most paying organizations'),
+                                dash_table.DataTable(id='sebra_orgs_table'),
+                                html.Br(), html.Button('Select a specific organization', id='org_selection_button'),
+                                html.Div(
+                                    children=[
+                                        html.P(id='orgs_filter_summary'),
+                                        html.Label('Minimum Total Amount: '), dcc.Input(id='orgs_min_amount', type='number', min=0, step=1_000),
+                                        html.Label(' Minimum Number of Payments: '), dcc.Input(id='orgs_min_payments', type='number', min=0, step=1),
+                                        html.Br(),
+                                        html.Label('Maximum Total Amount: '), dcc.Input(id='orgs_max_amount', type='number', min=0, step=1_000),
+                                        html.Label(' Maximum Number of Payments: '), dcc.Input(id='orgs_max_payments', type='number', min=0, step=1),
+                                        html.Br(),
+                                        dcc.Dropdown(id='primary_orgs_selection', placeholder='Select a Primary Organization ...'),
+                                        html.Br(),
+                                        html.Button('Submit', id='submit_org_filter'),
+                                        html.P(id='orgs_filter_output_summary')
+                                    ],
+                                    id='sebra_filter_orgs',
+                                    hidden=True
+                                )
+                            ],
+                            id='sebra_orgs_container',
+                            hidden=True
+                        ),
+                        html.Div(
+                            children=[
+                                html.Br(),
+                                dcc.Dropdown(id='sebra_orgs_dropdown'),
+                                dash_table.DataTable(id='sebra_specific_org_table')
+                            ],
+                            id='sebra_individual_org_container',
+                            hidden=True,
+                        ),
+                        html.Div(
+                            children=[
+                                html.Br(),
+                                html.P('Most receiving clients'),
+                                dash_table.DataTable(id='sebra_clients_table'),
+                                html.Br(),
+                                html.Button('Select a specific client', id='client_selection_button'),
+                                html.Div(
+                                    children=[
+                                        html.P(id='clients_filter_summary'),
+                                        html.Label('Minimum Total Amount: '), dcc.Input(id='clients_min_amount', type='number', min=0, step=1_000),
+                                        html.Label(' Minimum Number of Payments: '), dcc.Input(id='clients_min_payments', type='number', min=0, step=1),
+                                        html.Br(),
+                                        html.Label('Maximum Total Amount: '), dcc.Input(id='clients_max_amount', type='number', min=0, step=1_000),
+                                        html.Label(' Maximum Number of Payments: '), dcc.Input(id='clients_max_payments', type='number', min=0, step=1),
+                                        html.Br(),
+                                        html.Button('Submit', id='submit_client_filter'),
+                                        html.P(id='clients_filter_output_summary')
+                                    ],
+                                    id='sebra_filter_clients',
+                                    hidden=True
+                                )
+                            ],
+                            id='sebra_clients_container',
+                            hidden=True
+                        ),
+                        html.Div(
+                            children=[
+                                html.Br(),
+                                dcc.Dropdown(id='sebra_clients_dropdown'),
+                                dash_table.DataTable(id='sebra_specific_client_table')
+                            ],
+                            id='sebra_individual_client_container',
+                            hidden=True,
+                        ),
+                    ],
+                    id='pie_info',
+                    hidden=True
+                ),
+            ],
+            label='Pay Codes'
+        ),
+        dcc.Tab(
+            children=[
+                html.Div([
+                    html.H2('Payments Over Time'),
+                    dcc.Graph(id='time_series', figure=make_time_series()),
+                    dcc.Checklist(id='time_series_options', options=['Log scale', 'Hide weekends & holidays'])
+                ]),
+            ],
+            label='Timeline'
+        ),
+        dcc.Tab(
+            children=[
+                html.Div([
+                    html.H2('Primary Organizations'),
+                    html.P('Click on the points to see more details about that organization.'),
+                    dcc.Graph(id='primary_orgs', figure=plot_primary_orgs(), mathjax=True),
+                ]),
+                html.Div(id='primary_orgs_output'),
+            ],
+            label='Priamry Organizations'
+        ),
+        dcc.Tab(
+            children=[
+                html.Div([
+                    html.H2('Payments Per Day of the Week'),
+                    dcc.Graph(figure=compare_weekdays())
+                ]),
+                html.P('Run an arbitrary SQL query on the data'),
+                dcc.Textarea(
+                    id='query', 
+                    value=example_query,
+                    style={'width': '60%', 'height': 200}
+                ), html.Br(),
+                html.Button('Submit', id='submit'),
+                html.P(id='query_feedback'),
+                dash_table.DataTable(id='query_result'),
+                html.Button('Download result as CSV', id='download_button'),
+                dcc.Download(id='download_query'),
+            ],
+            label='Misc'
+        )
+    ])
 ])
 
 def get_columns(df: pd.DataFrame): 

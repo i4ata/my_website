@@ -12,7 +12,3 @@ This application allows for interacting with the public database for all budget 
 The other columns are omitted due to incosistencies in the data that require a lot of manual cleaning. I arranged the data into a few tables such that it satisfies 3NF. The entity relationship diagram is the following:
 
 ![](assets/sebra/ER.svg)
-
-## SEBRA Pay Codes
-
-Click on the pies' sectors or the bars to get more information about the payments for different categories.
