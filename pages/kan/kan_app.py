@@ -15,7 +15,7 @@ with open('assets/kan/nn.pkl', 'rb') as f:
     kan_layers: List[Tuple[np.ndarray, int, int]] = pickle.load(f)
     n_layers = len(kan_layers)
 
-register_page(__name__, path='/kan', name='Kolmogorov-Arnold Networks + Interaction', order=4)
+register_page(__name__, path='/kan', name='Kolmogorov-Arnold Networks + Interaction', order=5)
 
 def get_training() -> go.Figure:
     preds = np.squeeze(np.load('assets/kan/y_pred.npy'))

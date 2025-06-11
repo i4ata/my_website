@@ -17,7 +17,7 @@ with open('pages/backprop/text.md') as f:
 with open('pages/backprop/text_batches.md') as f:
     text_batches = f.read()
 
-register_page(__name__, path='/backprop', name='Backpropagation + Interaction', order=6)
+register_page(__name__, path='/backprop', name='Backpropagation + Interaction', order=7)
 
 layout = html.Div([
     dcc.Markdown(text, mathjax=True, link_target='_blank'),
