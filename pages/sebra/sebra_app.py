@@ -142,8 +142,7 @@ layout = html.Div([
                     children=[
                         html.Div(id='timeline_output'),
                         html.P('Largest payment on this date'),
-                        dash_table.DataTable(id='timeline_table'),
-                        html.P('')
+                        dash_table.DataTable(id='timeline_table')
                     ],
                     id='timeline_info',
                     hidden=True
@@ -583,9 +582,12 @@ def select_primary_org(click_data):
     point = click_data['points'][0]
     primary_org = point['customdata'][0]
     new_figure = Patch()
-    sizes = [5] * len(df_primary_orgs)
-    sizes[point['pointIndex']] = 15
+    sizes = [6] * len(df_primary_orgs)
+    sizes[point['pointIndex']] = 10
     new_figure['data'][1]['marker']['size'] = sizes
+    opacities = [.5] * len(df_primary_orgs)
+    opacities[point['pointIndex']] = 1
+    new_figure['data'][1]['marker']['opacity'] = opacities
     return new_figure, primary_org
 
 @callback(
@@ -606,6 +608,7 @@ def primary_orgs_summary(primary_org: str):
         ['AMOUNT']
         .agg(['sum', 'size'])
         .nlargest(5, 'sum')
+        .round({'sum': 0})
     )
     df.columns = ['Client', 'Total Amount', 'Total Payments']
     return False, df.to_dict('records'), get_columns(df)
