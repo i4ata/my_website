@@ -201,7 +201,7 @@ def make_pies() -> go.Figure:
     )
     return fig
 
-def make_time_series(hide_weekends: bool = False, log_scale: bool = False) -> go.Figure:
+def make_timeline(hide_weekends: bool = False, log_scale: bool = False) -> go.Figure:
     per_day = df_payments.groupby('SETTLEMENT_DATE')['AMOUNT'].agg(['sum', 'size'])
     if hide_weekends: per_day = per_day.asfreq('D')
     fig = make_subplots(specs=[[{'secondary_y': True}]])

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Literal, List, Union
 from pages.sebra.utils import (
     con, df_clients, df_orgs, df_payments, df_primary_orgs, df_sebra, pies, pay_codes, 
-    compare_codes, make_pies, make_time_series, plot_primary_orgs, compare_weekdays, plot_treemap
+    compare_codes, make_pies, make_timeline, plot_primary_orgs, compare_weekdays, plot_treemap
 )
 
 register_page(__name__, path='/sebra', name='SEBRA Payments', order=1)
@@ -135,12 +135,12 @@ layout = html.Div([
                 dcc.Store(id='date_selection'),
                 html.Div([
                     html.H2('Payments Over Time'),
-                    dcc.Graph(id='time_series', figure=make_time_series()),
-                    dcc.Checklist(id='time_series_options', options=['Log scale', 'Hide weekends & holidays'])
+                    dcc.Graph(id='timeline', figure=make_timeline()),
+                    dcc.Checklist(id='timeline_options', options=['Log scale', 'Hide weekends & holidays'])
                 ]),
                 html.Div(
                     children=[
-                        html.Div(id='time_series_output'),
+                        html.Div(id='timeline_output'),
                         html.P('Largest payment on this date'),
                         dash_table.DataTable(id='timeline_table'),
                         html.P('')
@@ -165,7 +165,7 @@ layout = html.Div([
                         html.P('Most receiving clients'),
                         dash_table.DataTable(id='primary_orgs_table')
                     ],
-                    id='primary_org_info',
+                    id='primary_orgs_info',
                     hidden=True
                 ),
             ],
@@ -512,16 +512,16 @@ def draw_rectangle(x: str) -> dict:
     }
     
 @callback(
-    Output('time_series', 'figure'),
+    Output('timeline', 'figure'),
     Output('date_selection', 'data'),
-    Input('time_series_options', 'value'),
-    Input('time_series', 'clickData'),
+    Input('timeline_options', 'value'),
+    Input('timeline', 'clickData'),
     State('date_selection', 'data')
 )
-def plot_time_series(options, click_data, date):
+def plot_timeline(options, click_data, date):
     if options is None and click_data is None: return no_update, no_update
-    if ctx.triggered_id == 'time_series_options':
-        fig = make_time_series('Hide weekends & holidays' in options, 'Log scale' in options)
+    if ctx.triggered_id == 'timeline_options':
+        fig = make_timeline('Hide weekends & holidays' in options, 'Log scale' in options)
         if date is not None: fig.add_shape(**draw_rectangle(date))
         return fig, no_update
 
@@ -531,7 +531,7 @@ def plot_time_series(options, click_data, date):
     return fig, new_date
 
 @callback(
-    Output('time_series_output', 'children'),
+    Output('timeline_output', 'children'),
     Input('date_selection', 'data')
 )
 def date_summary(date: str):
@@ -589,7 +589,7 @@ def select_primary_org(click_data):
     return new_figure, primary_org
 
 @callback(
-    Output('primary_org_info', 'hidden'),
+    Output('primary_orgs_info', 'hidden'),
     Output('primary_orgs_table', 'data'),
     Output('primary_orgs_table', 'columns'),
     Input('primary_org_selection', 'data')
