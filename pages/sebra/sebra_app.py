@@ -136,7 +136,16 @@ layout = html.Div([
                     dcc.Graph(id='time_series', figure=make_time_series()),
                     dcc.Checklist(id='time_series_options', options=['Log scale', 'Hide weekends & holidays'])
                 ]),
-                html.Div(id='time_series_output')
+                html.Div(
+                    children=[
+                        html.Div(id='time_series_output'),
+                        html.P('Largest payment on this date'),
+                        dash_table.DataTable(id='timeline_table'),
+                        html.P('')
+                    ],
+                    id='timeline_info',
+                    hidden=True
+                )
             ],
             label='Timeline'
         ),
@@ -149,7 +158,7 @@ layout = html.Div([
                 ]),
                 html.Div(id='primary_orgs_output'),
             ],
-            label='Priamry Organizations'
+            label='Primary Organizations'
         ),
         dcc.Tab(
             children=[
@@ -449,11 +458,11 @@ def display_org_info(org: Optional[str], code_selection: Optional[Dict[Literal['
         df_payments
         .query('SEBRA_PAY_CODE == @code & ORGANIZATION_ID == @org_id')
         .merge(df_clients, on='CLIENT_ID')
-        [['SETTLEMENT_DATE', 'AMOUNT', 'CLIENT_RECEIVER_NAME']]
+        [['SETTLEMENT_DATE', 'AMOUNT', 'CLIENT_RECEIVER_NAME', 'REASON1', 'REASON2']]
     )
     # Hacky way to avoid the datatable to show the hours, minutes, and seconds
     data['SETTLEMENT_DATE'] = data['SETTLEMENT_DATE'].dt.strftime('%d-%m-%Y')
-    data.columns = ['Settlement Date', 'Payment Amount', 'Client Name']
+    data.columns = ['Settlement Date', 'Payment Amount', 'Client Name', 'Reason 1', 'Reason 2']
     return data.to_dict('records'), get_columns(data)
 
 @callback(
@@ -466,16 +475,17 @@ def display_client_info(client: Optional[str], code_selection: Optional[Dict[Lit
     if client is None: return [], []
     code = code_selection['selected_code']
     client_id = df_clients.query('CLIENT_RECEIVER_NAME == @client').iloc[0].name
+    # print(df_payments.columns)
     data = (
         df_payments
         .query('SEBRA_PAY_CODE == @code & CLIENT_ID == @client_id')
         .merge(df_orgs, on='ORGANIZATION_ID')
         .merge(df_primary_orgs, on='PRIMARY_ORG_CODE')
-        [['SETTLEMENT_DATE', 'AMOUNT', 'ORGANIZATION', 'PRIMARY_ORGANIZATION']]
+        [['SETTLEMENT_DATE', 'AMOUNT', 'ORGANIZATION', 'PRIMARY_ORGANIZATION', 'REASON1', 'REASON2']]
     )
     # Hacky way to avoid the datatable to show the hours, minutes, and seconds
     data['SETTLEMENT_DATE'] = data['SETTLEMENT_DATE'].dt.strftime('%d-%m-%Y')
-    data.columns = ['Settlement Date', 'Payment Amount', 'Organization', 'Primary Organization']
+    data.columns = ['Settlement Date', 'Payment Amount', 'Organization', 'Primary Organization', 'Reason 1', 'Reason 2']
     return data.to_dict('records'), get_columns(data)
 
 # TAB 2
@@ -523,6 +533,26 @@ def plot_time_series(options, click_data, date):
 def date_summary(date: str):
     data = df_payments[df_payments['SETTLEMENT_DATE'] == date]
     return f'Chosen date: {date}, Unique clients: {data["CLIENT_ID"].nunique()}, Unique organizations: {data["ORGANIZATION_ID"].nunique()}'
+
+@callback(
+    Output('timeline_table', 'data'),
+    Output('timeline_table', 'columns'),
+    Output('timeline_info', 'hidden'),
+    Input('date_selection', 'data')
+)
+def largest_payments_today(date: str):
+    if date is None: return no_update, no_update, no_update
+    data = (
+        df_payments
+        [df_payments['SETTLEMENT_DATE'] == date]
+        .nlargest(5, 'AMOUNT')
+        .merge(df_clients, on='CLIENT_ID')
+        .merge(df_orgs, on='ORGANIZATION_ID')
+        .merge(df_primary_orgs, on='PRIMARY_ORG_CODE')
+        [['PRIMARY_ORGANIZATION', 'ORGANIZATION', 'AMOUNT', 'CLIENT_RECEIVER_NAME', 'SEBRA_PAY_CODE']]
+        .round({'AMOUNT': 0})
+    )
+    return data.to_dict('records'), get_columns(data), False
 
 @callback(
     Output('query_result', 'data'),

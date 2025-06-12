@@ -1,3 +1,5 @@
+# TODO: ADD THE BANK ACCOUNTS AS WELL MAYBE
+
 import sqlite3
 import pandas as pd
 import plotly.express as px
