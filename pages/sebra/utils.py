@@ -21,7 +21,7 @@ df_payments['SETTLEMENT_DATE'] = pd.to_datetime(df_payments['SETTLEMENT_DATE']).
 df_sebra = read_sql('sebra_codes', 'SEBRA_PAY_CODE')
 
 pay_codes: List[int] = sorted(df_payments['SEBRA_PAY_CODE'].unique())
-# PIES
+
 pies = {
     'labels': np.sort(df_payments['SEBRA_PAY_CODE'].unique()),
     'to_remove': [18, 20, 80, 90] 
