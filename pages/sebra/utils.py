@@ -7,6 +7,7 @@ import numpy as np
 import statsmodels.api as sm
 import os
 from typing import List, Tuple
+from datetime import timedelta, datetime
 
 con = sqlite3.connect('assets/sebra/sebra.db', check_same_thread=False)
 read_sql = lambda table_name, index_col: pd.read_sql(sql=f'select * from {table_name}', con=con, index_col=index_col)
@@ -217,7 +218,7 @@ def make_time_series(hide_weekends: bool = False, log_scale: bool = False) -> go
         ],
         secondary_ys=[False, True]
     )
-
+    
     fig.update_layout(
         title_text='Payments over Q1',
         xaxis_range=['2025-01-01', '2025-04-01'],
@@ -228,7 +229,6 @@ def make_time_series(hide_weekends: bool = False, log_scale: bool = False) -> go
     fig.update_yaxes(title_text='Total Amount', secondary_y=False)
     fig.update_yaxes(title_text='Total Payments', secondary_y=True)
     if log_scale: fig.update_yaxes(type='log')
-
     return fig
 
 def plot_primary_orgs() -> go.Figure:

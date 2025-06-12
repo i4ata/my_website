@@ -3,6 +3,7 @@ from dash.exceptions import PreventUpdate
 from dash.dash_table.Format import Format
 import pandas as pd
 import numpy as np
+from datetime import datetime, timedelta
 from typing import Optional, Dict, Literal, List, Union
 from pages.sebra.utils import (
     con, df_clients, df_orgs, df_payments, df_primary_orgs, df_sebra, pies, pay_codes, 
@@ -26,19 +27,19 @@ with open('pages/sebra/text.md') as f:
 layout = html.Div([
     dcc.Markdown(text, link_target='_blank', dangerously_allow_html=True),
     # dcc.Graph(figure=plot_treemap()),
-    dcc.Tabs(style={'overflow': 'hidden', 'scroll-behavior': 'unset'},children=[
+    dcc.Tabs([
         dcc.Tab(
             children=[
+                dcc.Store(id='code_selection'),
                 html.H2('SEBRA Pay Codes'),
                 html.P("Click on the pies' sectors or the bars to get more information about the payments for different categories."),
                 html.Div(
                     children=[
-                    dcc.Graph(id='pie', figure=make_pies(), style={'width': '50%', 'height': 650}),
+                    dcc.Graph(id='pie', figure=make_pies(), style={'width': '50%'}),
                     dcc.Graph(id='bar', figure=compare_codes(), style={'width': '50%'})
                     ], 
                     style={'display': 'flex'}
                 ),
-                dcc.Store(id='code_selection'),
                 html.Div(
                     children=[
                         html.Div(
@@ -129,11 +130,13 @@ layout = html.Div([
         ),
         dcc.Tab(
             children=[
+                dcc.Store(id='date_selection'),
                 html.Div([
                     html.H2('Payments Over Time'),
                     dcc.Graph(id='time_series', figure=make_time_series()),
                     dcc.Checklist(id='time_series_options', options=['Log scale', 'Hide weekends & holidays'])
                 ]),
+                html.Div(id='time_series_output')
             ],
             label='Timeline'
         ),
@@ -177,6 +180,8 @@ def get_columns(df: pd.DataFrame):
         +
         [{'name': col, 'id': col, 'type': 'numeric', 'format': Format().group(True)} for col in df.select_dtypes('number').columns]
     )
+
+# TAB 1
 
 @callback(
     Output('code_selection', 'data'),
@@ -473,13 +478,51 @@ def display_client_info(client: Optional[str], code_selection: Optional[Dict[Lit
     data.columns = ['Settlement Date', 'Payment Amount', 'Organization', 'Primary Organization']
     return data.to_dict('records'), get_columns(data)
 
+# TAB 2
+
+def draw_rectangle(x: str) -> dict:
+    date = datetime(*map(int, x.split('-')))
+    time_delta = timedelta(hours=12)
+    return {
+        'fillcolor': 'green',
+        'layer': 'below',
+        'line': {'width': 0},
+        'opacity': 0.3,
+        'type': 'rect',
+        'x0': date - time_delta,
+        'x1': date + time_delta,
+        'xref': 'x',
+        'y0': 0,
+        'y1': 1,
+        'yref': 'y domain'
+    }
+    
 @callback(
     Output('time_series', 'figure'),
-    Input('time_series_options', 'value')
+    Output('date_selection', 'data'),
+    Input('time_series_options', 'value'),
+    Input('time_series', 'clickData'),
+    State('date_selection', 'data')
 )
-def plot_time_series(options):
-    if options is None: return no_update
-    return make_time_series('Hide weekends & holidays' in options, 'Log scale' in options)
+def plot_time_series(options, click_data, date):
+    if options is None and click_data is None: return no_update, no_update
+    if ctx.triggered_id == 'time_series_options':
+        fig = make_time_series('Hide weekends & holidays' in options, 'Log scale' in options)
+        if date is not None: fig.add_shape(**draw_rectangle(date))
+        return fig, no_update
+
+    new_date = click_data['points'][0]['x']
+    fig = Patch()
+    fig['layout']['shapes'] = [draw_rectangle(new_date)]
+    return fig, new_date
+
+@callback(
+    Output('time_series_output', 'children'),
+    Input('date_selection', 'data')
+)
+def date_summary(date: str):
+    data = df_payments[df_payments['SETTLEMENT_DATE'] == date]
+    return f'Chosen date: {date}, Unique clients: {data["CLIENT_ID"].nunique()}, Unique organizations: {data["ORGANIZATION_ID"].nunique()}'
 
 @callback(
     Output('query_result', 'data'),
