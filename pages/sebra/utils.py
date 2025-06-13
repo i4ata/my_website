@@ -169,6 +169,8 @@ categories = {
 for category, primary_orgs in categories.items():
     df_primary_orgs.loc[df_primary_orgs['PRIMARY_ORGANIZATION'].isin(primary_orgs), 'Category'] = category
 
+# df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_primary_orgs, on='PRIMARY_ORG_CODE').groupby(['SEBRA_PAY_CODE', 'Category'])['AMOUNT'].sum().to_csv('sankey.csv')
+# exit(0)
 def make_pies() -> go.Figure:
     fig = make_subplots(
         rows=1, cols=2, 
@@ -199,6 +201,23 @@ def make_pies() -> go.Figure:
         legend_title='SEBRA Code',
         title_text='Payments for different SEBRA categories'
     )
+    return fig
+
+def make_sankey() -> go.Figure:
+    data: pd.DataFrame = (
+        df_payments
+        .merge(df_orgs, on='ORGANIZATION_ID')
+        .merge(df_primary_orgs, on='PRIMARY_ORG_CODE')
+        .groupby(['SEBRA_PAY_CODE', 'Category'], as_index=False)
+        ['AMOUNT']
+        .sum()
+        .sort_values('SEBRA_PAY_CODE')
+    )
+    
+    nodes = data['SEBRA_PAY_CODE'].unique().tolist() + data['Category'].unique().tolist()
+    nodes_mapping = {x: i for i, x in enumerate(nodes)}
+    links = {'source': data['SEBRA_PAY_CODE'].map(nodes_mapping), 'target': data['Category'].map(nodes_mapping), 'value': np.log10(data['AMOUNT'].values).tolist()}
+    fig = go.Figure([go.Sankey(node={'label': nodes}, link=links)])
     return fig
 
 def make_timeline(hide_weekends: bool = False, log_scale: bool = False) -> go.Figure:
@@ -295,7 +314,7 @@ def compare_weekdays():
     )
     fig.update_layout(xaxis_title='Day of the Week', title_text='Payments per Weekday', barmode='group')
     fig.update_yaxes(title_text='Median Payment Amount', secondary_y=False)
-    fig.update_yaxes(title_text='Median Amount of Payments', secondary_y=True)
+    fig.update_yaxes(title_text='Median Number of Payments', secondary_y=True)
     return fig
 
 def plot_treemap() -> go.Figure:
