@@ -11,6 +11,15 @@ from pages.sebra.utils import (
     compare_codes, make_pies, make_timeline, plot_primary_orgs, compare_weekdays, plot_treemap, make_sankey
 )
 
+def debug(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            print(traceback.format_exc())
+            raise PreventUpdate
+    return wrapper
+
 register_page(__name__, path='/sebra', name='SEBRA Payments', order=1)
 
 example_query = """SELECT ORGANIZATION, PRIMARY_ORGANIZATION, ROUND(AVG(AMOUNT)) AS MEAN_AMOUNT, COUNT(AMOUNT) AS TOTAL_PAYMENTS 
@@ -445,7 +454,7 @@ def select_primary_org(click_data):
     opacities[point['pointIndex']] = 1
     new_figure['data'][1]['marker']['opacity'] = opacities
 
-    primary_org_code = df_primary_orgs[df_primary_orgs == primary_org].index[0]
+    primary_org_code = df_primary_orgs[df_primary_orgs['PRIMARY_ORGANIZATION'] == primary_org].index[0]
     return new_figure, primary_org_code
 
 @callback(
@@ -454,12 +463,12 @@ def select_primary_org(click_data):
     Output('primary_orgs_table', 'columns'),
     Input('primary_org_selection', 'data')
 )
-def primary_orgs_summary(primary_org: str):
-    if primary_org is None: return no_update, no_update, no_update
+def primary_orgs_summary(primary_org_code: int):
+    if primary_org_code is None: return no_update, no_update, no_update
     df = (
         df_payments
         .merge(df_orgs, on='ORGANIZATION_ID')
-        .query('PRIMARY_ORGANIZATION == @primary_org')
+        .query('PRIMARY_ORG_CODE == @primary_org_code')
         .merge(df_clients, on='CLIENT_ID')
         .groupby('CLIENT_RECEIVER_NAME', as_index=False)
         ['AMOUNT']
@@ -475,31 +484,33 @@ def primary_orgs_summary(primary_org: str):
 @callback(
     Output('filter_orgs', 'hidden'),
     Output('orgs_filter_summary', 'children'),
-    Input('orgs_button', 'n_clicks'),
-    State('tab_query', 'data')
-)
-def enable_finding_organizations(n_clicks: int, query: str):
-    if n_clicks is None: return no_update, no_update
-    if 'PRIMARY_ORG_CODE' in query: df = df_payments.merge(df_orgs, on='ORGANIZATION_ID')
-    else: df = df_payments
-    return False, f'There are {df.query(query)["ORGANIZATION_ID"].nunique()} unique organizations. You can filter them first'
-
-@callback(
     Output('filter_clients', 'hidden'),
     Output('clients_filter_summary', 'children'),
+    Input('orgs_button', 'n_clicks'),
     Input('clients_button', 'n_clicks'),
+    Input('tabs', 'value'),
     State('tab_query', 'data')
 )
-def enable_finding_clients(n_clicks: int, query: str):
-    if n_clicks is None: return no_update, no_update
-    return False, f'There are {df_payments.query(query)["CLIENT_ID"].nunique()} unique clients. You can filter them first'
+def enable_finding_organizations_or_clients(orgs: int, clients: int, tab: str, query: str):
+    
+    if orgs is None and clients is None: return [no_update] * 4
+    if ctx.triggered_id == 'tabs': return True, no_update, True, no_update
+
+    if 'PRIMARY_ORG_CODE' in query: df = df_payments.merge(df_orgs, on='ORGANIZATION_ID')
+    else: df = df_payments
+
+    unique_orgs, unique_clients = df.query(query)[['ORGANIZATION_ID', 'CLIENT_ID']].nunique()
+    if ctx.triggered_id == 'orgs_button': return False, f'There are {unique_orgs} unique organizations. You can filter them first', no_update, no_update
+    else: return no_update, no_update, False, f'There are {unique_clients} unique clients. You can filter them first'
 
 @callback(
     Output('individual_org_container', 'hidden'),
     Output('orgs_dropdown', 'options'),
+    Output('orgs_dropdown', 'value'),
     Output('orgs_filter_output_summary', 'children'),
 
-    Input('submit_orgs_filter', 'n_clicks'),    
+    Input('submit_orgs_filter', 'n_clicks'),
+    Input('tabs', 'value'),    
     State('tab_query', 'data'),
     State('orgs_min_amount', 'value'),
     State('orgs_min_payments', 'value'),
@@ -507,12 +518,13 @@ def enable_finding_clients(n_clicks: int, query: str):
     State('orgs_max_payments', 'value')
 )
 def select_specifig_org(
-    submit_org_filter: Optional[int],
+    submit_org_filter: Optional[int], tab: str,
     global_query: str,
     min_amount: Optional[int], min_payments: Optional[int], max_amount: Optional[int], max_payments: Optional[int] 
 ):
     # Initial call: All is None
-    if submit_org_filter is None and global_query is None: return [no_update] * 3
+    if submit_org_filter is None and global_query is None: return [no_update] * 4
+    if ctx.triggered_id == 'tabs': return True, [], None, None
 
     df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
 
@@ -531,14 +543,16 @@ def select_specifig_org(
         if value is not None
     )
     orgs = np.sort((aggregation.query(query) if query else aggregation)['ORGANIZATION'].unique())
-    return False, orgs, f'Filtered {len(orgs)} organizations'
+    return False, orgs, None, f'Filtered {len(orgs)} organizations'
 
 @callback(
     Output('individual_client_container', 'hidden'),
     Output('clients_dropdown', 'options'),
+    Output('clients_dropdown', 'value'),
     Output('clients_filter_output_summary', 'children'),
 
-    Input('submit_clients_filter', 'n_clicks'),    
+    Input('submit_clients_filter', 'n_clicks'),
+    Input('tabs', 'value'),
     State('tab_query', 'data'),
     State('clients_min_amount', 'value'),
     State('clients_min_payments', 'value'),
@@ -546,12 +560,13 @@ def select_specifig_org(
     State('clients_max_payments', 'value'),
 )
 def select_specifig_client(
-    submit_client_filter: Optional[int],
+    submit_client_filter: Optional[int], tab: str,
     global_query: str,
     min_amount: Optional[int], min_payments: Optional[int], max_amount: Optional[int], max_payments: Optional[int] 
 ):
     # Initial call: All is None
-    if submit_client_filter is None and global_query is None: return [no_update] * 3
+    if submit_client_filter is None and global_query is None: return [no_update] * 4
+    if ctx.triggered_id == 'tabs': return True, [], None, None
     
     df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
 
@@ -570,7 +585,7 @@ def select_specifig_client(
         if value is not None
     )
     clients = np.sort((aggregation.query(query) if query else aggregation)['CLIENT_RECEIVER_NAME'].unique())
-    return False, clients, f'Filtered {len(clients)} clients'
+    return False, clients, None, f'Filtered {len(clients)} clients'
 
 @callback(
     Output('individual_org_table', 'data'),
