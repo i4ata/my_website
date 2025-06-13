@@ -76,9 +76,9 @@ layout = html.Div([
                     html.Div(
                         children=[
                             html.Div(id='sebra_summary'),
-                            html.P('Most paying organizations'),
+                            html.Br(), html.P('Most paying organizations'),
                             dash_table.DataTable(id='sebra_orgs_table'),
-                            html.P('Most receiving clients'),
+                            html.Br(), html.P('Most receiving clients'),
                             dash_table.DataTable(id='sebra_clients_table')
                         ],
                         id='sebra_summary_container',
@@ -153,7 +153,7 @@ layout = html.Div([
     html.Div(
         children=[
             # ORGANIZATIONS
-            html.Button('Find a specific organization', id='orgs_button'),
+            html.Br(), html.Button('Find a specific organization', id='orgs_button'), html.Br(),
             html.Div(
                 children=[
                     html.P(id='orgs_filter_summary'),
@@ -162,8 +162,7 @@ layout = html.Div([
                     html.Br(),
                     html.Label('Maximum Total Amount:'), dcc.Input(id='orgs_max_amount', type='number', min=0, step=1_000),
                     html.Label('Maximum Number of Payments:'), dcc.Input(id='orgs_max_payments', type='number', min=0, step=1),
-                    html.Br(),
-                    html.Button('Submit', id='submit_orgs_filter'),
+                    html.Br(), html.Button('Submit', id='submit_orgs_filter'), html.Br(),
                     html.P(id='orgs_filter_output_summary')
                 ],
                 id='filter_orgs',
@@ -172,14 +171,14 @@ layout = html.Div([
             html.Div(
                 children=[
                     dcc.Dropdown(id='orgs_dropdown'),
-                    dash_table.DataTable(id='individual_org_table')
+                    html.Br(), dash_table.DataTable(id='individual_org_table'), html.Br()
                 ],
                 id='individual_org_container',
                 hidden=True,
             ),
 
             # CLIENTS
-            html.Button('Find a specific client', id='clients_button'),
+            html.Br(), html.Button('Find a specific client', id='clients_button'), html.Br(),
             html.Div(
                 children=[
                     html.P(id='clients_filter_summary'),
@@ -188,8 +187,7 @@ layout = html.Div([
                     html.Br(),
                     html.Label('Maximum Total Amount:'), dcc.Input(id='clients_max_amount', type='number', min=0, step=1_000),
                     html.Label('Maximum Number of Payments:'), dcc.Input(id='clients_max_payments', type='number', min=0, step=1),
-                    html.Br(),
-                    html.Button('Submit', id='submit_clients_filter'),
+                    html.Br(), html.Button('Submit', id='submit_clients_filter'), html.Br(),
                     html.P(id='clients_filter_output_summary')
                 ],
                 id='filter_clients',
@@ -197,9 +195,8 @@ layout = html.Div([
             ),
             html.Div(
                 children=[
-                    html.Br(),
                     dcc.Dropdown(id='clients_dropdown'),
-                    dash_table.DataTable(id='individual_client_table')
+                    html.Br(), dash_table.DataTable(id='individual_client_table'), html.Br()
                 ],
                 id='individual_client_container',
                 hidden=True,
@@ -235,7 +232,7 @@ def update_filter(tab, query):
 def set_query(code, date, primary_org_code):
     if all((code is None, date is None, primary_org_code is None)): return no_update
     if ctx.triggered_id == 'code_selection': return f'SEBRA_PAY_CODE == {code}'
-    if ctx.triggered_id == 'date_selection': return f'SETTLEMENT_DATE == "{date}"'
+    if ctx.triggered_id == 'date_selection': return f'SETTLEMENT_DATE == @pd.Timestamp("{date}")'
     if ctx.triggered_id == 'primary_org_selection': return f'PRIMARY_ORG_CODE == {primary_org_code}'
 
 # TAB 1
