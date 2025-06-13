@@ -4,7 +4,7 @@ from dash.dash_table.Format import Format
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Literal, List, Union, Tuple
+from typing import Optional, Dict, Literal, List, Union
 from pages.sebra.utils import (
     con, df_clients, df_orgs, df_payments, df_primary_orgs, df_sebra, pies, pay_codes, 
     compare_codes, make_pies, make_timeline, plot_primary_orgs, compare_weekdays, plot_treemap, make_sankey
@@ -24,8 +24,6 @@ LIMIT 5;"""
 with open('pages/sebra/text.md') as f:
     text = f.read()
 
-range_slider_tooltip = {'always_visible': True}
-
 layout = html.Div([
     dcc.Markdown(text, link_target='_blank', dangerously_allow_html=True),
     # dcc.Graph(figure=make_sankey()),
@@ -37,7 +35,7 @@ layout = html.Div([
             html.Li(f'Number of unique clients: {df_payments["CLIENT_ID"].nunique()}'),
             html.Li(f'Number of unique organizations: {df_payments["ORGANIZATION_ID"].nunique()}')
         ])
-    ]), 
+    ]),
     dcc.Tabs([
         dcc.Tab(
             children=[
@@ -72,10 +70,12 @@ layout = html.Div([
                                 html.Div(
                                     children=[
                                         html.P(id='orgs_filter_summary'),
-                                        html.Label('Select the range of the total payment amount'),
-                                        dcc.RangeSlider(min=5000, max=5000, id='orgs_total_amount_range', tooltip=range_slider_tooltip),
-                                        html.Label('Select the range of the total number of payments'),
-                                        dcc.RangeSlider(min=0, max=0, id='orgs_total_payments_range', tooltip=range_slider_tooltip),
+                                        html.Label('Minimum Total Amount: '), dcc.Input(id='orgs_min_amount', type='number', min=0, step=1_000),
+                                        html.Label(' Minimum Number of Payments: '), dcc.Input(id='orgs_min_payments', type='number', min=0, step=1),
+                                        html.Br(),
+                                        html.Label('Maximum Total Amount: '), dcc.Input(id='orgs_max_amount', type='number', min=0, step=1_000),
+                                        html.Label(' Maximum Number of Payments: '), dcc.Input(id='orgs_max_payments', type='number', min=0, step=1),
+                                        html.Br(),
                                         dcc.Dropdown(id='primary_orgs_selection', placeholder='Select a Primary Organization ...'),
                                         html.Br(),
                                         html.Button('Submit', id='submit_org_filter'),
@@ -336,18 +336,6 @@ def pie_summary(code: int):
     )
 
 @callback(
-    Output('orgs_total_payments_range', 'max'),
-    Output('orgs_total_amount_range', 'max'),
-    Output('orgs_total_payments_range', 'value'),
-    Output('orgs_total_amount_range', 'value'),
-    Input('code_selection', 'data')
-)
-def update_sliders(code: int):
-    if code is None: return no_update, no_update, no_update, no_update
-    max_payments, max_amount = df_payments.query('SEBRA_PAY_CODE == @code').groupby('ORGANIZATION_ID')['AMOUNT'].agg(['size', 'sum']).max().values.tolist()
-    return max_payments, max_amount, [0, max_payments], [5000, max_amount]
-    
-@callback(
     Output('sebra_individual_org_container', 'hidden'),
     Output('sebra_orgs_dropdown', 'options'),
 
@@ -361,15 +349,18 @@ def update_sliders(code: int):
     Input('submit_org_filter', 'n_clicks'),
     Input('code_selection', 'data'),
 
-    State('orgs_total_payments_range', 'value'),
-    State('orgs_total_amount_range', 'value'),
+    State('orgs_min_amount', 'value'),
+    State('orgs_min_payments', 'value'),
+    State('orgs_max_amount', 'value'),
+    State('orgs_max_payments', 'value'),
     State('primary_orgs_selection', 'value')
 )
 def select_specifig_org(
     org_selection: Optional[int],
     submit_org_filter: Optional[int],
     code: int,
-    payments_range: Optional[Tuple[int, int]], amount_range: Optional[Tuple[int, int]], primary_org: Optional[str] 
+
+    min_amount: Optional[int], min_payments: Optional[int], max_amount: Optional[int], max_payments: Optional[int], primary_org: Optional[str] 
 ):
     # Initial call: All is None
     if org_selection is None and submit_org_filter is None and code is None: return [no_update] * 6
@@ -401,14 +392,11 @@ def select_specifig_org(
         ['AMOUNT']
         .agg(['sum', 'size'])
         .rename({'sum': 'amount', 'size': 'payments'}, axis='columns')
-        .round({'sum': 0})
     )
-    if payments_range == None: payments_range = [None, None]
-    if amount_range == None: amount_range = [None, None]
     query = ' & '.join(
         f'{col} {sign} {value}' 
         for col, sign, value in 
-        zip(('amount', 'amount', 'payments', 'payments'), ('>=', '<=', '>=', '<='), amount_range + payments_range)
+        zip(('amount', 'payments', 'amount', 'payments'), ('>=', '>=', '<=', '<='), (min_amount, min_payments, max_amount, max_payments))
         if value is not None
     )
     orgs = np.sort((aggregation.query(query) if query else aggregation)['ORGANIZATION'].unique())
@@ -441,7 +429,9 @@ def select_specifig_client(
 ):
     # Initial call: All is None
     if client_selection is None and submit_client_filter is None and code is None: return [no_update] * 5
-    unique_clients = np.sort(df_payments.query('SEBRA_PAY_CODE == @code').merge(df_clients, on='CLIENT_ID')['CLIENT_RECEIVER_NAME'].unique())
+    
+    df_payments_clients = df_payments.query('SEBRA_PAY_CODE == @code').merge(df_clients, on='CLIENT_ID')
+    unique_clients = np.sort(df_payments_clients['CLIENT_RECEIVER_NAME'].unique())
 
     # If we chose a different sebra code, reset everything
     if ctx.triggered_id == 'code_selection': return True, [], True, None, None
@@ -453,7 +443,6 @@ def select_specifig_client(
         return True, [], False, summary, None
 
     # If we filter the clients
-    df_payments_clients = df_payments.query('SEBRA_PAY_CODE == @code').merge(df_clients[df_clients['CLIENT_RECEIVER_NAME'].isin(unique_clients)], on='CLIENT_ID')
     aggregation: pd.DataFrame = (
         df_payments_clients
         .groupby('CLIENT_RECEIVER_NAME', as_index=False)
