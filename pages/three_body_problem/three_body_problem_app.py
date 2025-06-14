@@ -4,6 +4,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import random as rd
 import numpy as np
+from copy import deepcopy
 
 from pages.three_body_problem.three_body_problem import run_euler
 from utils import updatemenu
@@ -208,7 +209,7 @@ def _plot(x: np.ndarray, animate: bool) -> go.Figure:
             for frame in range(t)
         ]
 
-    nbp_menu = updatemenu
+    nbp_menu = deepcopy(updatemenu)
     nbp_menu['buttons'][0]['args'][1]['frame']['duration'] = 2 # Set to 2ms per frame
     fig.update_layout(
         title=f'Simulation of {n} bodies in {d}D', 
