@@ -35,8 +35,8 @@ layout = html.Div([
         html.Ul([
             html.Li(f'Total amount spent: {round(df_payments["AMOUNT"].sum()):,}'),
             html.Li(f'Total number of transactions: {len(df_payments):,}'),
-            html.Li(f'Number of unique clients: {df_payments["CLIENT_ID"].nunique()}'),
-            html.Li(f'Number of unique organizations: {df_payments["ORGANIZATION_ID"].nunique()}')
+            html.Li(f'Number of unique clients: {df_payments["CLIENT_ID"].nunique():,}'),
+            html.Li(f'Number of unique organizations: {df_payments["ORGANIZATION_ID"].nunique():,}')
         ])
     ]),
     dcc.Store(id='tab_query'),
@@ -83,9 +83,13 @@ layout = html.Div([
                     dcc.Store(id='date_selection'),
                     html.Div([
                         html.H2('Payments Over Time'),
+                        html.Label('Choose whether you want to select a single day or a range'),
                         dcc.RadioItems(id='timeline_radio', options=[{'label': 'Single Day', 'value': False}, {'label': 'Range', 'value': True}], value=False),
+                        html.Br(), html.Label('Click on the graph to see more information about that date/range'),
                         dcc.Graph(id='timeline', figure=make_timeline()),
-                        dcc.Checklist(id='timeline_options', options=['Log scale', 'Hide weekends & holidays'])
+                        html.Label('Format the graph'),
+                        dcc.Checklist(id='timeline_options', options=['Log scale', 'Hide weekends & holidays']),
+                        html.Br()
                     ]),
                     html.Div(
                         children=[
@@ -123,9 +127,10 @@ layout = html.Div([
             children=[
                 html.Div([
                     html.H2('Payments Per Day of the Week'),
+                    html.P('This graph shows the median number of payments as well as the median payment amount per day per weekday. Interestingly enough, it can be seen that the fewest yet largest payments are made on Tuesday'),
                     dcc.Graph(figure=compare_weekdays())
                 ]),
-                html.P('Run an arbitrary SQL query on the data'),
+                html.H2('Run an arbitrary SQL query on the data'),
                 dcc.Textarea(
                     id='query', 
                     value=example_query,
@@ -438,10 +443,11 @@ def largest_payments_today(date: List[str]):
 @callback(
     Output('primary_orgs', 'figure'),
     Output('primary_org_selection', 'data'),
+    Output('primary_orgs_output', 'children'),
     Input('primary_orgs', 'clickData')
 )
 def select_primary_org(click_data):
-    if click_data is None or click_data['points'][0]['curveNumber'] == 0: return no_update, no_update
+    if click_data is None or click_data['points'][0]['curveNumber'] == 0: return [no_update] * 3
     point = click_data['points'][0]
     primary_org = point['customdata'][0]
     new_figure = Patch()
@@ -453,7 +459,17 @@ def select_primary_org(click_data):
     new_figure['data'][1]['marker']['opacity'] = opacities
 
     primary_org_code = df_primary_orgs[df_primary_orgs['PRIMARY_ORGANIZATION'] == primary_org].index[0]
-    return new_figure, primary_org_code
+    df = df_orgs.query('PRIMARY_ORG_CODE == @primary_org_code').merge(df_payments, on='ORGANIZATION_ID')
+    summary = html.Div([
+        html.P(f'You selected {primary_org}'),
+        html.Ul([
+            html.Li(f'Unique organizations: {df["ORGANIZATION"].nunique():,}'),
+            html.Li(f'Unique clients: {df["CLIENT_ID"].nunique():,}'),
+            html.Li(f'Total payments: {len(df):,}'),
+            html.Li(f'Total payment amount: {round(df["AMOUNT"].sum()):,}')
+        ])
+    ])
+    return new_figure, primary_org_code, summary
 
 @callback(
     Output('primary_orgs_info', 'hidden'),
