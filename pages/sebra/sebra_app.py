@@ -538,43 +538,43 @@ def select_specifig_org(
     initial: str,
     min_amount: Optional[int], min_payments: Optional[int], max_amount: Optional[int], max_payments: Optional[int] 
 ):
-    try:
-        # Initial call: All is None
-        if submit_org_filter is None and global_query is None: return [no_update] * 5
-        if ctx.triggered_id == 'tabs': return True, [], None, None, None
+    # Initial call: All is None
+    if submit_org_filter is None and global_query is None: return [no_update] * 5
+    if ctx.triggered_id == 'tabs': return True, [], None, None, None
 
-        df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
-        if initial is not None:
-            df = df[df['ORGANIZATION'].str.upper().str.extract(f'([{bg_letters}])', expand=False) == initial]
-        # If we filter the orgs
-        aggregation: pd.DataFrame = (
-            df
-            .groupby('ORGANIZATION', as_index=False)
-            ['AMOUNT']
-            .agg(['sum', 'size'])
-            .rename({'sum': 'amount', 'size': 'payments'}, axis='columns')
-        )
-        query = ' & '.join(
-            f'{col} {sign} {value}' 
-            for col, sign, value in 
-            zip(('amount', 'payments', 'amount', 'payments'), ('>=', '>=', '<=', '<='), (min_amount, min_payments, max_amount, max_payments))
-            if value is not None
-        )
-        orgs = np.sort((aggregation.query(query) if query else aggregation)['ORGANIZATION'].unique())
-        return False, orgs, no_update, no_update, f'Filtered {len(orgs)} organizations'
-    except Exception as e:
-        print(traceback.format_exc())
-        raise PreventUpdate
+    df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
+    if initial is not None:
+        df = df[df['ORGANIZATION'].str.upper().str.extract(f'([{bg_letters}])', expand=False) == initial]
+    # If we filter the orgs
+    aggregation: pd.DataFrame = (
+        df
+        .groupby('ORGANIZATION', as_index=False)
+        ['AMOUNT']
+        .agg(['sum', 'size'])
+        .rename({'sum': 'amount', 'size': 'payments'}, axis='columns')
+    )
+    query = ' & '.join(
+        f'{col} {sign} {value}' 
+        for col, sign, value in 
+        zip(('amount', 'payments', 'amount', 'payments'), ('>=', '>=', '<=', '<='), (min_amount, min_payments, max_amount, max_payments))
+        if value is not None
+    )
+    orgs = np.sort((aggregation.query(query) if query else aggregation)['ORGANIZATION'].unique())
+    return False, orgs, no_update, no_update, f'Filtered {len(orgs)} organizations'
+
 
 @callback(
     Output('individual_client_container', 'hidden'),
     Output('clients_dropdown', 'options'),
     Output('clients_dropdown', 'value'),
+    Output('clients_initials', 'value'),
     Output('clients_filter_output_summary', 'children'),
 
     Input('submit_clients_filter', 'n_clicks'),
     Input('tabs', 'value'),
+
     State('tab_query', 'data'),
+    State('clients_initials', 'value'),
     State('clients_min_amount', 'value'),
     State('clients_min_payments', 'value'),
     State('clients_max_amount', 'value'),
@@ -583,14 +583,16 @@ def select_specifig_org(
 def select_specifig_client(
     submit_client_filter: Optional[int], tab: str,
     global_query: str,
+    initial: str,
     min_amount: Optional[int], min_payments: Optional[int], max_amount: Optional[int], max_payments: Optional[int] 
 ):
     # Initial call: All is None
-    if submit_client_filter is None and global_query is None: return [no_update] * 4
-    if ctx.triggered_id == 'tabs': return True, [], None, None
+    if submit_client_filter is None and global_query is None: return [no_update] * 5
+    if ctx.triggered_id == 'tabs': return True, [], None, None, None
     
     df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
-
+    if initial is not None:
+        df = df[df['CLIENT_RECEIVER_NAME'].str.upper().str.extract(f'([{bg_letters}])', expand=False) == initial]
     # If we filter the clients
     aggregation: pd.DataFrame = (
         df
@@ -606,7 +608,7 @@ def select_specifig_client(
         if value is not None
     )
     clients = np.sort((aggregation.query(query) if query else aggregation)['CLIENT_RECEIVER_NAME'].unique())
-    return False, clients, None, f'Filtered {len(clients)} clients'
+    return False, clients, no_update, no_update, f'Filtered {len(clients)} clients'
 
 @callback(
     Output('individual_org_table', 'data'),
