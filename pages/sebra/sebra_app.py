@@ -83,13 +83,14 @@ layout = html.Div([
                     dcc.Store(id='date_selection'),
                     html.Div([
                         html.H2('Payments Over Time'),
+                        dcc.RadioItems(id='timeline_radio', options=[{'label': 'Single Day', 'value': False}, {'label': 'Range', 'value': True}], value=False),
                         dcc.Graph(id='timeline', figure=make_timeline()),
                         dcc.Checklist(id='timeline_options', options=['Log scale', 'Hide weekends & holidays'])
                     ]),
                     html.Div(
                         children=[
                             html.Div(id='timeline_output'),
-                            html.P('Largest payment on this date'),
+                            html.P('Largest payments'),
                             dash_table.DataTable(id='timeline_table')
                         ],
                         id='timeline_info',
@@ -224,9 +225,12 @@ def update_filter(tab, query):
 )
 def set_query(code, date, primary_org_code):
     if all((code is None, date is None, primary_org_code is None)): return no_update
-    if ctx.triggered_id == 'code_selection': return f'SEBRA_PAY_CODE == {code}'
-    if ctx.triggered_id == 'date_selection': return f'SETTLEMENT_DATE == @pd.Timestamp("{date}")'
-    if ctx.triggered_id == 'primary_org_selection': return f'PRIMARY_ORG_CODE == {primary_org_code}'
+    if ctx.triggered_id == 'code_selection': 
+        return f'SEBRA_PAY_CODE == {code}'
+    if ctx.triggered_id == 'date_selection': 
+        return f'SETTLEMENT_DATE == @pd.Timestamp("{date[0]}")' if len(date) == 1 else f'"{date[0]}" < SETTLEMENT_DATE < "{date[1]}"'
+    if ctx.triggered_id == 'primary_org_selection': 
+        return f'PRIMARY_ORG_CODE == {primary_org_code}'
 
 # TAB 1
 
@@ -360,8 +364,10 @@ def pie_summary(code: int):
 
 # TAB 2
 
-def draw_rectangle(x: str) -> dict:
-    date = datetime(*map(int, x.split('-')))
+def draw_rectangle(x1: str, x2: Optional[str] = None) -> dict:
+    get_datetime = lambda x: datetime(*map(int, x.split('-')))
+    date1 = get_datetime(x1)
+    date2 = date1 if x2 is None else get_datetime(x2)
     time_delta = timedelta(hours=12)
     return {
         'fillcolor': 'green',
@@ -369,8 +375,8 @@ def draw_rectangle(x: str) -> dict:
         'line': {'width': 0},
         'opacity': 0.3,
         'type': 'rect',
-        'x0': date - time_delta,
-        'x1': date + time_delta,
+        'x0': date1 - time_delta,
+        'x1': date2 + time_delta,
         'xref': 'x',
         'y0': 0,
         'y1': 1,
@@ -382,27 +388,28 @@ def draw_rectangle(x: str) -> dict:
     Output('date_selection', 'data'),
     Input('timeline_options', 'value'),
     Input('timeline', 'clickData'),
+    Input('timeline_radio', 'value'),
     State('date_selection', 'data')
 )
-def plot_timeline(options, click_data, date):
+def plot_timeline(options, click_data, range, date):
+    
     if options is None and click_data is None: return no_update, no_update
     if ctx.triggered_id == 'timeline_options':
         fig = make_timeline('Hide weekends & holidays' in options, 'Log scale' in options)
-        if date is not None: fig.add_shape(**draw_rectangle(date))
+        if date is not None: fig.add_shape(**draw_rectangle(*date))
         return fig, no_update
 
-    new_date = click_data['points'][0]['x']
     fig = Patch()
-    fig['layout']['shapes'] = [draw_rectangle(new_date)]
-    return fig, new_date
+    if ctx.triggered_id == 'timeline_radio':
+        if range: return no_update, no_update
+        fig['layout']['shapes'] = [draw_rectangle(date[0])]
+        return fig, [date[0]]
 
-@callback(
-    Output('timeline_output', 'children'),
-    Input('date_selection', 'data')
-)
-def date_summary(date: str):
-    data = df_payments[df_payments['SETTLEMENT_DATE'] == date]
-    return f'Chosen date: {date}, Unique clients: {data["CLIENT_ID"].nunique()}, Unique organizations: {data["ORGANIZATION_ID"].nunique()}'
+    new_date = click_data['points'][0]['x']
+    if range and date is not None: new_date = sorted((new_date, date[0]))
+    else: new_date = [new_date]
+    fig['layout']['shapes'] = [draw_rectangle(*new_date)]
+    return fig, new_date
 
 @callback(
     Output('timeline_table', 'data'),
@@ -410,19 +417,20 @@ def date_summary(date: str):
     Output('timeline_info', 'hidden'),
     Input('date_selection', 'data')
 )
-def largest_payments_today(date: str):
+def largest_payments_today(date: List[str]):
     if date is None: return no_update, no_update, no_update
     data = (
         df_payments
-        [df_payments['SETTLEMENT_DATE'] == date]
+        .query(f'SETTLEMENT_DATE == @pd.Timestamp("{date[0]}")' if len(date) == 1 else f'"{date[0]}" < SETTLEMENT_DATE < "{date[1]}"')
         .nlargest(5, 'AMOUNT')
         .merge(df_clients, on='CLIENT_ID')
         .merge(df_orgs, on='ORGANIZATION_ID')
         .merge(df_primary_orgs, on='PRIMARY_ORG_CODE')
-        [['PRIMARY_ORGANIZATION', 'ORGANIZATION', 'AMOUNT', 'CLIENT_RECEIVER_NAME', 'SEBRA_PAY_CODE', 'REASON1', 'REASON2']]
+        [['SETTLEMENT_DATE', 'PRIMARY_ORGANIZATION', 'ORGANIZATION', 'AMOUNT', 'CLIENT_RECEIVER_NAME', 'SEBRA_PAY_CODE', 'REASON1', 'REASON2']]
         .round({'AMOUNT': 0})
     )
-    data.columns = ['Primary Organization', 'Organization', 'Amount', 'Client', 'SEBRA Pay Code', 'Reason 1', 'Reason 2']
+    data['SETTLEMENT_DATE'] = data['SETTLEMENT_DATE'].dt.strftime('%d-%m-%Y')
+    data.columns = ['Date', 'Primary Organization', 'Organization', 'Amount', 'Client', 'SEBRA Pay Code', 'Reason 1', 'Reason 2']
     return data.to_dict('records'), get_columns(data), False
 
 # TAB 3
@@ -535,34 +543,29 @@ def select_specifig_org(
     initial: str,
     min_amount: Optional[int], min_payments: Optional[int], max_amount: Optional[int], max_payments: Optional[int] 
 ):
-    try:
-        # Initial call: All is None
-        if submit_org_filter is None and global_query is None: return [no_update] * 5
-        if ctx.triggered_id == 'tabs': return True, [], None, None, None
+    # Initial call: All is None
+    if submit_org_filter is None and global_query is None: return [no_update] * 5
+    if ctx.triggered_id == 'tabs': return True, [], None, None, None
 
-        df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
-        if initial is not None:
-            df = df[df['ORGANIZATION'].str.upper().str.extract(f'([{bg_letters}])', expand=False) == initial]
-        # If we filter the orgs
-        aggregation: pd.DataFrame = (
-            df
-            .groupby('ORGANIZATION', as_index=False)
-            ['AMOUNT']
-            .agg(['sum', 'size'])
-            .rename({'sum': 'amount', 'size': 'payments'}, axis='columns')
-        )
-        query = ' & '.join(
-            f'{col} {sign} {value}' 
-            for col, sign, value in 
-            zip(('amount', 'payments', 'amount', 'payments'), ('>=', '>=', '<=', '<='), (min_amount, min_payments, max_amount, max_payments))
-            if value is not None
-        )
-        orgs = np.sort((aggregation.query(query) if query else aggregation)['ORGANIZATION'].unique())
-        return False, orgs, no_update, no_update, f'Filtered {len(orgs)} organizations'
-    except Exception as e:
-        print(traceback.format_exc())
-        raise PreventUpdate
-
+    df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
+    if initial is not None:
+        df = df[df['ORGANIZATION'].str.upper().str.extract(f'([{bg_letters}])', expand=False) == initial]
+    # If we filter the orgs
+    aggregation: pd.DataFrame = (
+        df
+        .groupby('ORGANIZATION', as_index=False)
+        ['AMOUNT']
+        .agg(['sum', 'size'])
+        .rename({'sum': 'amount', 'size': 'payments'}, axis='columns')
+    )
+    query = ' & '.join(
+        f'{col} {sign} {value}' 
+        for col, sign, value in 
+        zip(('amount', 'payments', 'amount', 'payments'), ('>=', '>=', '<=', '<='), (min_amount, min_payments, max_amount, max_payments))
+        if value is not None
+    )
+    orgs = np.sort((aggregation.query(query) if query else aggregation)['ORGANIZATION'].unique())
+    return False, orgs, no_update, no_update, f'Filtered {len(orgs)} organizations'
 
 @callback(
     Output('individual_client_container', 'hidden'),
