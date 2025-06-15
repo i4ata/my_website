@@ -76,7 +76,8 @@ layout = html.Div([
                         hidden=True
                     )
                 ],
-                label='Pay Codes'
+                label='Pay Codes',
+                value='SEBRA_PAY_CODE'
             ),
             dcc.Tab(
                 children=[
@@ -101,7 +102,8 @@ layout = html.Div([
                         hidden=True
                     )
                 ],
-                label='Timeline'
+                label='Timeline',
+                value='SETTLEMENT_DATE'
             ),
             dcc.Tab(
                 children=[
@@ -121,28 +123,30 @@ layout = html.Div([
                         hidden=True
                     ),
                 ],
-                label='Primary Organizations'
+                label='Primary Organizations',
+                value='PRIMARY_ORG_CODE'
             ),
             dcc.Tab(
-            children=[
-                html.Div([
-                    html.H2('Payments Per Day of the Week'),
-                    html.P('This graph shows the median number of payments as well as the median payment amount per day per weekday. Interestingly enough, it can be seen that the fewest yet largest payments are made on Tuesday'),
-                    dcc.Graph(figure=compare_weekdays())
-                ]),
-                html.H2('Run an arbitrary SQL query on the data'),
-                dcc.Textarea(
-                    id='query', 
-                    value=example_query,
-                    style={'width': '60%', 'height': 200}
-                ), html.Br(),
-                html.Button('Submit', id='submit'),
-                html.P(id='query_feedback'),
-                dash_table.DataTable(id='query_result'),
-                html.Button('Download result as CSV', id='download_button'),
-                dcc.Download(id='download_query'),
-            ],
-            label='Misc'
+                children=[
+                    html.Div([
+                        html.H2('Payments Per Day of the Week'),
+                        html.P('This graph shows the median number of payments as well as the median payment amount per day per weekday. Interestingly enough, it can be seen that the fewest yet largest payments are made on Tuesday'),
+                        dcc.Graph(figure=compare_weekdays())
+                    ]),
+                    html.H2('Run an arbitrary SQL query on the data'),
+                    dcc.Textarea(
+                        id='query', 
+                        value=example_query,
+                        style={'width': '60%', 'height': 200}
+                    ), html.Br(),
+                    html.Button('Submit', id='submit'),
+                    html.P(id='query_feedback'),
+                    dash_table.DataTable(id='query_result'),
+                    html.Button('Download result as CSV', id='download_button'),
+                    dcc.Download(id='download_query'),
+                ],
+                label='Misc',
+                value='Misc'
         )
         ], 
         id='tabs'
@@ -220,21 +224,22 @@ def get_columns(df: pd.DataFrame):
 )
 def update_filter(tab, query):
     if tab is None and query is None: return no_update
-    return ctx.triggered_id == 'tabs'
+    return ctx.triggered_id == 'tabs' and query is None
 
 @callback(
     Output('tab_query', 'data'),
+    Input('tabs', 'value'),
     Input('code_selection', 'data'),
     Input('date_selection', 'data'),
     Input('primary_org_selection', 'data')
 )
-def set_query(code, date, primary_org_code):
-    if all((code is None, date is None, primary_org_code is None)): return no_update
-    if ctx.triggered_id == 'code_selection': 
+def set_query(tab, code, date, primary_org_code):
+    if all((tab is None, code is None, date is None, primary_org_code is None)): return no_update
+    if (ctx.triggered_id == 'tabs' and tab == 'SEBRA_PAY_CODE' and code is not None) or ctx.triggered_id == 'code_selection':
         return f'SEBRA_PAY_CODE == {code}'
-    if ctx.triggered_id == 'date_selection': 
+    if (ctx.triggered_id == 'tabs' and tab == 'SETTLEMENT_DATE' and date is not None) or ctx.triggered_id == 'date_selection': 
         return f'SETTLEMENT_DATE == @pd.Timestamp("{date[0]}")' if len(date) == 1 else f'"{date[0]}" < SETTLEMENT_DATE < "{date[1]}"'
-    if ctx.triggered_id == 'primary_org_selection': 
+    if (ctx.triggered_id == 'tabs' and tab == 'PRIMARY_ORG_CODE' and primary_org_code is not None) or ctx.triggered_id == 'primary_org_selection': 
         return f'PRIMARY_ORG_CODE == {primary_org_code}'
 
 # TAB 1
