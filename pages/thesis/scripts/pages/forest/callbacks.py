@@ -52,7 +52,7 @@ def select_tree(tree_idx: Optional[int]):
         [f'You selected tree {tree_idx}, It appears {utils.helper.forest.popularity_counts[tree_idx]} times in the forest'] + 
         ([html.Br(), 'This tree is trained on the original (non-bootstrapped) data'] if tree_idx == len(utils.helper.forest)-1 else [])
     )
-    return utils.helper.graph_data[tree_idx], None, None, tree_info, False
+    return utils.helper.graph_data[tree_idx], None, None, tree_info, True # Set to false to enable making pdf graphs from the tree 
 
 @callback(
     Output(PREFIX+'save-tree-txt-output', 'children'),
