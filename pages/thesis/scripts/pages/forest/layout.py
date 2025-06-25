@@ -87,7 +87,7 @@ layout = html.Div([
         children=[
             html.Br(),
             html.H3('Stage 1'),
-            html.P('Considering each variable independently'),
+            html.P('Considering each variable independently. Select a row to visualize the split'),
 
             # The table for the selected variable at that node
             dash_table.DataTable(
@@ -106,7 +106,7 @@ layout = html.Div([
             
             html.Br(),
             html.H3('Stage 2'),
-            html.P('Controlling for the other variables'),
+            html.P('Controlling for the other variables. Selec a row to visualize the strata'),
             dash_table.DataTable(
                 id=PREFIX+'table-stratified',
                 row_selectable='single',

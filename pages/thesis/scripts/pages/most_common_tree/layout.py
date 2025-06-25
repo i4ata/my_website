@@ -5,6 +5,7 @@ PREFIX = 'most-common-tree-'
 
 layout = html.Div([
     html.H2('Most Common Tree', id=PREFIX+'txt-warning'),
+    html.P(id=PREFIX+'intro'),
     cyto.Cytoscape(
         id=PREFIX+'cyto-tree',
         userZoomingEnabled=False,
@@ -19,6 +20,5 @@ layout = html.Div([
             {'selector': 'node', 'style': {'label': 'data(label)'}}
         ]
     ),
-    html.P(id=PREFIX+'txt-info'),
     dcc.Graph(id=PREFIX+'graph-threshold-distribution', style={'display': 'none'})
 ])

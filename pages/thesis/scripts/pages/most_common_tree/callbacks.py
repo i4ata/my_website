@@ -10,7 +10,7 @@ from pages.thesis.scripts.most_common_tree import MostCommonNode
 
 # Called when the page is loaded
 @callback(
-    Output(PREFIX+'txt-info', 'children'),
+    Output(PREFIX+'intro', 'children'),
     Output(PREFIX+'cyto-tree', 'elements'),
     Output(PREFIX+'txt-warning', 'children'),
     Input('url', 'pathname')
