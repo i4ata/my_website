@@ -4,7 +4,7 @@ PREFIX = 'home-'
 
 layout = html.Div([
     html.H2('Model Selection'),
-    html.P('Load a trained causal forest from memory (looking in resources/models)'),
+    html.P('Load a trained causal forest from memory'),
     dcc.Dropdown(id=PREFIX+'models', placeholder='Choose a model', persistence=True, persistence_type='session'),
     dcc.Loading(html.Div(id=PREFIX+'info'))
 ])

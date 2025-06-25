@@ -11,13 +11,10 @@ import pickle
 from typing import Dict, Union, List, Any
 from abc import ABC, abstractmethod
 import logging
-import sys
 
 from pages.thesis.scripts.base import FittableTree
 from pages.thesis.scripts.most_common_tree import MostCommonTree, MostCommonTreeRegression, MostCommonTreeSurvival
 from pages.thesis.scripts.tree import CausalRegressionTree, CausalSurvivalTree, ScikitRegressionTree, ScikitSurvivalTree
-
-sys.path.append('pages/thesis')
 
 # Make a wrapper that maps a dictionary to keyword arguments
 def _tree_constructor_wrapper(kwargs: Dict[str, Any]):

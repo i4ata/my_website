@@ -16,7 +16,7 @@ from pages.thesis.scripts.most_common_tree import MostCommonNode
     Input('url', 'pathname')
 )
 def load_page(pathname: Optional[str]):
-    if utils.helper is None: return None, [], 'Go back to home and choose a model first, Bozo!'
+    if utils.helper is None: return None, [], 'Go back to Thesis and choose a forest first!'
     if pathname == '/thesis/most_common_tree': return (
         f'The most common tree occurs {utils.helper.forest.highest_frequency}/{len(utils.helper.forest)} times. Click on a node to visualize the distribution of threshold',
         utils.helper.graph_data_most_common,

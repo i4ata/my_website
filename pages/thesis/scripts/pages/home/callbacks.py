@@ -1,5 +1,4 @@
-from dash import callback, Input, Output, html
-from dash.exceptions import PreventUpdate
+from dash import callback, Input, Output, html, State, no_update
 from pathlib import Path
 import os
 from typing import List, Any, Optional
@@ -11,10 +10,12 @@ from pages.thesis.scripts.forest import Forest, RegressionForest, SurvivalForest
 # Called when the page is loaded
 @callback(
     Output(PREFIX+'models', 'options'),
-    Input('url', 'pathname')
+    Input('url', 'pathname'),
+    State(PREFIX+'models', 'options')
 )
-def load_page(pathname: Optional[str]):
+def load_page(pathname: Optional[str], current_options):
     if pathname is None: return []
+    if current_options is not None: return no_update
     if pathname == '/thesis':
         return [
             {'label': file.replace('pages/thesis/resources/models', ''), 'value': file}
@@ -22,9 +23,7 @@ def load_page(pathname: Optional[str]):
         ]
     return []
 
-
 def get_summary(forest: Forest, forest_path: str) -> List[Any]:
-    
     return [
         html.P('✅ Model loaded successfully!'),
         html.Ul([
@@ -51,7 +50,6 @@ def get_summary(forest: Forest, forest_path: str) -> List[Any]:
     Input(PREFIX+'models', 'value')
 )
 def select_model(forest_path: Optional[str]):
-    
     if forest_path is None: return None
     assert os.path.exists(forest_path)
 

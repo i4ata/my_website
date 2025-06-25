@@ -19,7 +19,7 @@ PREFIX='forest-'
     Input('url', 'pathname')
 )
 def load_page(pathname: str):
-    if utils.helper is None: return [], 'Go back to home and choose a forest first, Bozo!', None
+    if utils.helper is None: return [], 'Go back to Thesis and choose a forest first!', None
     if pathname != '/thesis/forest': return [], no_update, None
     
     options = [
@@ -105,8 +105,12 @@ def display_click_data(tree_idx: Optional[int], node_data: Optional[Dict[Literal
     # Get the df at the node at hand by querying the original data
     df_at_node = utils.helper.forest.df.query(node.context) if node.context else utils.helper.forest.df.copy()
     
-    # Generate the graph to plot. Automatically accounts for whether the node is terminal or not
-    fig = utils.helper.show_graph(df=df_at_node, col=node.feature, threshold=node.threshold)
+    # Generate the graph to plot
+    fig = (
+        utils.helper.show_graph(df=df_at_node, col=node.feature, threshold=node.threshold) 
+        if not node.terminal else
+        utils.helper.show_graph(df=df_at_node)
+    )
 
     if (
         node.terminal and 

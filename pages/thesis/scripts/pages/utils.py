@@ -11,14 +11,17 @@ from dash import html
 import re
 import math
 from abc import ABC, abstractmethod
-import sys
-
-sys.path.append('pages/thesis')
 
 from pages.thesis.scripts.base import Node
 from pages.thesis.scripts.causal_node import CausalNode
 from pages.thesis.scripts.scikit_node import ScikitNode
+# from pages.thesis.scripts.forest import Forest, SurvivalForest, RegressionForest
+
+# This is just a way to load the pickle files that were previously dumped in the original thesis repo
+import sys
+sys.path.append('pages/thesis')
 from scripts.forest import Forest, SurvivalForest, RegressionForest
+
 
 import logging
 logging.basicConfig(
@@ -72,16 +75,19 @@ class VisualizationHelper(ABC):
 
         summary_df = pd.DataFrame(summary)
         summary_df = summary_df.T.reset_index(names='Context')
-        summary_df['Context'] = summary_df['Context'].replace('', 'No Context') # Rename the empty context
-        summary_df = (
-            summary_df.assign(Context_Length=summary_df['Context'].str.count(','))
-            .sort_values(by=['Context_Length', 'Context'], ascending=[False, True])
-            .drop('Context_Length', axis='columns')
-            .melt(id_vars='Context', var_name='Category', value_name='Count')
+        summary_df['Context'] = summary_df['Context'].replace('', 'No Context')
+        summary_df_long = summary_df.melt(id_vars='Context', var_name='Category', value_name='Count')
+        summary_df_long = (
+            summary_df_long
+            .assign(l=summary_df_long['Context'].apply(lambda x: -1 if x == 'No Context' else x.count(',')))
+            .sort_values(by=['l', 'Context'], ignore_index=True)
+            .drop('l', axis='columns')
         )
-        summary_df['Category'] = summary_df['Category'].map({False: 'Not selected', True: 'Selected'})
-
-        fig = px.bar(summary_df, y='Context', x='Count', color='Category', orientation='h')
+        summary_df_long['Category'] = summary_df_long['Category'].map({False: 'Not selected', True: 'Selected'})
+        fig = px.bar(
+            summary_df_long, y='Context', x='Count', color='Category', orientation='h', 
+            category_orders={'Context': summary_df_long['Context'].unique().tolist()}
+        )
         return fig
 
     @abstractmethod
@@ -169,7 +175,7 @@ class VisualizationHelper(ABC):
                     'tree id': i,
                     'node id': node.node_id,
                     'threshold': node.best_splits_per_var_independent_all.loc[var, 'threshold'],
-                    'context': node.context.replace(' & ', '\n'),
+                    'context': node.context.replace(' & ', '\n').replace('`', '').replace('>', ' > ').replace('<', ' < '),
                     'depth': 0 if node.context == '' else node.context.count('&') + 1, # Infer the depth of the node using the context,
                     'is split': 'T' if node.feature == var else 'F',
                     'stratified by': '\n'.join(stratified_by),
@@ -182,8 +188,7 @@ class VisualizationHelperRegression(VisualizationHelper):
     def _show_graph_groups(self, df: pd.DataFrame, col: str, threshold: float) -> go.Figure:
         return px.box(
             data_frame=df.assign(split=(df[col]>threshold).map({True: f'{col} > {threshold}', False: f'{col} <= {threshold}'})), 
-            x='split', 
-            y=self.y_col,
+            x='split', y=self.y_col, 
             category_orders={'split': [f'{col} > {threshold}', f'{col} <= {threshold}']}
         )
     
@@ -317,12 +322,11 @@ class VisualizationHelperSurvival(VisualizationHelper):
     
     def show_graph_strata(self, df: pd.DataFrame, strata: List[str], col: str, threshold: float) -> go.Figure:
         if not strata or strata == ['']: return self.show_graph(df, col, threshold)
-        if len(strata) > 4:
-            rows = math.floor(math.sqrt(len(strata)))
-            cols = len(strata) // rows
+        n = len(strata)
+        if n > 4 and n % 4 == 0:
+            rows, cols = n // 4, 4
         else:
-            rows = 1
-            cols = len(strata)
+            rows, cols = 1, n
         fig = make_subplots(
             rows=rows, cols=cols, shared_yaxes=True, y_title='KM Estimate', x_title='time',
             subplot_titles=[stratum.replace(' & ', '<br>').replace('`', '') for stratum in strata]
@@ -339,6 +343,7 @@ class VisualizationHelperSurvival(VisualizationHelper):
         return fig
 
 def create_helper(forest_path: str) -> VisualizationHelper:
+
     forest = Forest.load(forest_path)
     if isinstance(forest, SurvivalForest):
         helper = VisualizationHelperSurvival(forest, forest_path)

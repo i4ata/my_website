@@ -13,8 +13,8 @@ PREFIX = 'vars-'
     Input('url', 'pathname'),
 )
 def load_page(pathname: str):
-    if utils.helper is None: return [], 'Go back to home and choose a forest first, Bozo!'
-    if pathname == '/variables': return utils.helper.variables, no_update
+    if utils.helper is None: return [], 'Go back to Thesis and choose a forest first!'
+    if pathname == '/thesis/variables': return utils.helper.variables, no_update
     return [], None
 
 @callback(

@@ -7,6 +7,7 @@ from typing import Optional, Tuple, Literal, List
 from enum import Enum
 import scipy.stats as stats
 from scipy.sparse import csr_array
+
 from pages.thesis.scripts.base import FittableNode
 
 class ScikitReasonForTerminal(Enum):
