@@ -1,6 +1,6 @@
 # Hello and welcome to my website
 
-My name is Ivaylo Rusinov, currently a 2nd year MSc student at the University of Groningen and finishing up my Master's thesis that is done in collaboration with the Department of Nephrology at the University Medical Center Groningen (it will be added to the website shortly). I am an aspiring data scientist and software engineer! Aside from my studies, I am a teaching assistant at the university for various courses, both at the Bachelor and the Master level. You can contact me through [Gmail](mailto:ivaylo.russinov@gmail.com), [LinkedIn](https://www.linkedin.com/in/ivaylo-rusinov-7002b2230/), or [GitHub](https://github.com/i4ata). This is my [CV](../../assets/home/cv.pdf).
+My name is Ivaylo Rusinov, currently a 2nd year MSc student at the University of Groningen and finishing up my Master's thesis that is done in collaboration with the Department of Nephrology at the University Medical Center Groningen (we are working on publishing it!). I am an aspiring data scientist and software engineer! Aside from my studies, I am a teaching assistant at the university for various courses, both at the Bachelor and the Master level. You can contact me through [Gmail](mailto:ivaylo.russinov@gmail.com), [LinkedIn](https://www.linkedin.com/in/ivaylo-rusinov-7002b2230/), or [GitHub](https://github.com/i4ata).
 
 This website is written using Plotly's [Dash](https://dash.plotly.com/) and is self-hosted on this bad boi (Raspberry Pi 5) at home:
 

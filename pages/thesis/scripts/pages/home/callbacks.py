@@ -7,6 +7,20 @@ from pages.thesis.scripts.pages.home.layout import PREFIX
 import pages.thesis.scripts.pages.utils as utils
 from pages.thesis.scripts.forest import Forest, RegressionForest, SurvivalForest
 
+def format_filename(f: str):
+    return (
+        f
+        .replace('pages/thesis/resources/models', '')
+        .replace('/survival', 'Survival | ')
+        .replace('/regression', 'Regression | ')
+        .replace('/binary', ' (Binary)')
+        .replace('/continuous', ' (Continuous)')
+        .replace('/causal_forest.pkl', '')
+        .replace('_', ' ')
+        .replace('/', ' ')
+        .title()
+    )
+
 # Called when the page is loaded
 @callback(
     Output(PREFIX+'models', 'options'),
@@ -18,7 +32,7 @@ def load_page(pathname: Optional[str], current_options):
     if current_options is not None: return no_update
     if pathname == '/thesis':
         return [
-            {'label': file.replace('pages/thesis/resources/models', ''), 'value': file}
+            {'label': format_filename(file), 'value': file}
             for file in map(str, Path('pages', 'thesis', 'resources', 'models').rglob('*causal*.pkl'))
         ]
     return []
