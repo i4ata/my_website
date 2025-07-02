@@ -13,7 +13,7 @@ SCHIPHOL_LAT = 52.309
 
 engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
 
-register_page(__name__, path='/schiphol', name='Schiphol Airport ETL + Interaction', order=8)
+register_page(__name__, path='/schiphol', name='Schiphol Airport ETL + Interaction', order=2)
 
 read_sql_table = lambda table, index: pd.read_sql(f'select * from {table}', engine, index_col=index)
 

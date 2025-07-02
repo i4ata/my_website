@@ -10,7 +10,7 @@ from etl import etl_script
 engine = sqlalchemy.create_engine(etl_script.connection_str)
 
 @dag(
-    schedule='0 5 0 * * *',
+    schedule='0 0 3 * * *',
     start_date=datetime.today(),
     catchup=False,
     tags=['schiphol']
