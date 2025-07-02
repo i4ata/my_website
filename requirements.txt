@@ -8,3 +8,9 @@ matplotlib
 tqdm
 gunicorn
 statsmodels
+sqlalchemy
+PyMySQL
+graphviz
+lifelines
+seaborn
+scikit-survival
