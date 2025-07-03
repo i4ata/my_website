@@ -3,6 +3,7 @@ from airflow.decorators import dag, task
 import pandas as pd
 import sqlalchemy
 import sys
+from datetime import datetime
 
 sys.path.append('/opt/airflow')
 
@@ -10,8 +11,8 @@ from etl import etl_script
 engine = sqlalchemy.create_engine(etl_script.connection_str)
 
 @dag(
-    schedule='0 0 3 * * *',
-    start_date=datetime.today(),
+    schedule='0 7 * * *',
+    start_date=datetime(2025, 7, 3),
     catchup=False,
     tags=['schiphol']
 )
