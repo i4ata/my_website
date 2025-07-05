@@ -111,7 +111,7 @@ layout = html.Div([
                     html.Div([
                         html.H2('Primary Organizations'),
                         html.P('Click on the points to see more details about that organization.'),
-                        dcc.Graph(id='primary_orgs', figure=plot_primary_orgs(), mathjax=True),
+                        dcc.Graph(id='primary_orgs', figure=plot_primary_orgs()),
                     ]),
                     html.Div(
                         children=[
@@ -137,7 +137,7 @@ layout = html.Div([
                     dcc.Textarea(
                         id='query', 
                         value=example_query,
-                        style={'width': '60%', 'height': 200}
+                        style={'width': '70%', 'height': 250}
                     ), html.Br(),
                     html.Button('Submit', id='submit'),
                     html.P(id='query_feedback'),
@@ -459,7 +459,7 @@ def select_primary_org(click_data):
     sizes = [6] * len(df_primary_orgs)
     sizes[point['pointIndex']] = 10
     new_figure['data'][1]['marker']['size'] = sizes
-    opacities = [.5] * len(df_primary_orgs)
+    opacities = [.7] * len(df_primary_orgs)
     opacities[point['pointIndex']] = 1
     new_figure['data'][1]['marker']['opacity'] = opacities
 

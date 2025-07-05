@@ -10,6 +10,7 @@ import statsmodels.api as sm
 import os
 from typing import List, Tuple
 from datetime import timedelta, datetime
+from time import time
 
 con = sqlite3.connect('assets/sebra/sebra.db', check_same_thread=False)
 read_sql = lambda table_name, index_col: pd.read_sql(sql=f'select * from {table_name}', con=con, index_col=index_col)
@@ -169,8 +170,6 @@ categories = {
 for category, primary_orgs in categories.items():
     df_primary_orgs.loc[df_primary_orgs['PRIMARY_ORGANIZATION'].isin(primary_orgs), 'Category'] = category
 
-# df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_primary_orgs, on='PRIMARY_ORG_CODE').groupby(['SEBRA_PAY_CODE', 'Category'])['AMOUNT'].sum().to_csv('sankey.csv')
-# exit(0)
 def make_pies() -> go.Figure:
     fig = make_subplots(
         rows=1, cols=2, 
@@ -253,6 +252,7 @@ def make_timeline(hide_weekends: bool = False, log_scale: bool = False) -> go.Fi
     return fig
 
 def plot_primary_orgs() -> go.Figure:
+    start = time()
     per_primary_org = (
         df_payments
         .merge(df_orgs, on='ORGANIZATION_ID')
@@ -274,7 +274,7 @@ def plot_primary_orgs() -> go.Figure:
         'colorbar': colorbar,
         'cmin': 3.7,
         'cmax': per_primary_org['median'].max(),
-        'size': 5
+        'size': 6
     }
 
     model = sm.OLS(np.log10(per_primary_org['size']), sm.add_constant(np.log10(per_primary_org['sum']))).fit()
@@ -283,7 +283,7 @@ def plot_primary_orgs() -> go.Figure:
     
     # text = f'$R^2={model.rsquared:.3f}$<br>$\log_{{10}}(y)={model.params["const"]:.3f}+{model.params["sum"]:.3f}x$'
     hovertemplate_trendline = f'R-squared: {model.rsquared:.2f}<br>Slope: {model.params["sum"]:.2f}<br>Intercept: {model.params["const"]:.2f}<extra></extra>'
-    fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', line_color='orange', hovertemplate=hovertemplate_trendline))
+    fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', line_color='green', hovertemplate=hovertemplate_trendline))
 
     hovertemplate_scatter = '<b>%{customdata[0]}</b><br>Total Amount: %{x:,}<br>Total Payments: %{y}<extra></extra>'
     fig.add_trace(go.Scatter(x=per_primary_org['sum'], y=per_primary_org['size'], marker=marker, mode='markers', customdata=per_primary_org.index.values[:, np.newaxis], hovertemplate=hovertemplate_scatter))
@@ -291,6 +291,7 @@ def plot_primary_orgs() -> go.Figure:
     fig.update_layout(title_text='Payments per Primary Organization', showlegend=False)
     fig.update_xaxes(type='log', title_text='Total Payment Amount')
     fig.update_yaxes(type='log', title_text='Total Number of Payments')
+    print(time() - start)
     return fig
 
 def compare_weekdays():
