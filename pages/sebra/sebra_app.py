@@ -550,8 +550,8 @@ def enable_finding_organizations_or_clients(orgs: int, clients: int, tab: str, q
 
     Input('submit_orgs_filter', 'n_clicks'),
     Input('tabs', 'value'),    
-    
-    State('tab_query', 'data'),
+    Input('tab_query', 'data'),
+
     State('orgs_initials', 'value'),
     State('orgs_min_amount', 'value'),
     State('orgs_min_payments', 'value'),
@@ -566,7 +566,7 @@ def select_specifig_org(
 ):
     # Initial call: All is None
     if submit_org_filter is None and global_query is None: return [no_update] * 5
-    if ctx.triggered_id == 'tabs': return True, [], None, None, None
+    if ctx.triggered_id in ('tabs', 'tab_query'): return True, [], None, None, None
 
     df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
     if initial is not None:
@@ -597,8 +597,8 @@ def select_specifig_org(
 
     Input('submit_clients_filter', 'n_clicks'),
     Input('tabs', 'value'),
+    Input('tab_query', 'data'),
 
-    State('tab_query', 'data'),
     State('clients_initials', 'value'),
     State('clients_min_amount', 'value'),
     State('clients_min_payments', 'value'),
@@ -613,7 +613,7 @@ def select_specifig_client(
 ):
     # Initial call: All is None
     if submit_client_filter is None and global_query is None: return [no_update] * 5
-    if ctx.triggered_id == 'tabs': return True, [], None, None, None
+    if ctx.triggered_id in ('tabs', 'tab_query'): return True, [], None, None, None
     
     df = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(global_query)
     if initial is not None:

@@ -11,7 +11,8 @@ warnings.filterwarnings('ignore')
 SCHIPHOL_LON = 4.674
 SCHIPHOL_LAT = 52.309
 
-engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
+# engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
+engine = create_engine('mysql+pymysql://root:@localhost:3306/schiphol')
 
 register_page(__name__, path='/schiphol', name='Schiphol Airport ETL + Interaction', order=2)
 
