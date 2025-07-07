@@ -1,39 +1,59 @@
 import dash
-from dash import Dash, html, dcc
-import dash_bootstrap_components as dbc
+from dash import dcc
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
-from typing import List, Tuple
 
-dmc.add_figure_templates(default="mantine_light")
-app = Dash(__name__, use_pages=True, external_stylesheets=[dmc.styles.ALL])
+dmc.add_figure_templates(default='mantine_light')
+app = dash.Dash(__name__, use_pages=True, external_stylesheets=dmc.styles.ALL)
 server = app.server
 
-pages: List[Tuple[str, str]] = [
-    (page['name'], page['relative_path']) 
-    for page in dash.page_registry.values() 
-    if page['relative_path'].count('/') == 1
-]
+def create_nav_link(icon: str, label: str, href: str):
+    return dmc.NavLink(
+        label=dmc.Text(label, size='md'),
+        href=href, active='exact',
+        leftSection=DashIconify(icon=icon, width=28, height=28)
+    )
 
-app.layout = dbc.Container([
-    dcc.Location(id='url'),
-    dbc.Row([
-        dbc.Col([
-            html.H2('My Website'),
-            html.Hr(),
-            dbc.Nav(
-                children=[dbc.NavLink(name, href=href, active='exact') for name, href in pages],
-                vertical=True, pills=True
-            ),
-        ], width={'size': 2, 'offset': 0, 'order': 2}),
-        dbc.Col(
-            [dash.page_container], 
-            style={'overflowY': 'auto', 'height': '100vh'}, 
-            className='fixed-top',
-            width={'size': 10, 'offset': 2, 'order': 2}
-        )
-    ])
-], fluid=True)
+navbar_links = dmc.Stack(
+    [
+        create_nav_link(icon=page['icon'], label=page['name'], href=page['path'])
+        for page in dash.page_registry.values() if page['path'].count('/') == 1
+    ],
+    gap='md'
+)
+
+def create_icon_link(icon: str, href: str):
+    return dmc.Anchor(
+        DashIconify(icon=icon, width=50, height=50),
+        href=href, target='_blank',
+    )
+
+contact_links = dmc.Group(
+    justify='center', gap='md',
+    children=[
+        create_icon_link('logos:google-gmail', 'mailto:ivaylo.russinov@gmail.com'),
+        create_icon_link('logos:github-icon', 'https://github.com/i4ata'),
+        create_icon_link('logos:linkedin-icon', 'https://www.linkedin.com/in/ivaylo-rusinov-7002b2230/'),
+    ]  
+)
+
+navbar = dmc.Box([
+    navbar_links,
+    dmc.Divider(label='Contact', size='md', style={'marginBottom': 30, 'marginTop': 20}),
+    contact_links
+])
+
+layout = dmc.AppShell(
+    [
+        dcc.Location(id='url'),
+        dmc.AppShellHeader(dmc.Title('My Projects')),
+        dmc.AppShellNavbar(navbar),
+        dmc.AppShellMain(dmc.Container(dash.page_container, px=20, size='100%')),
+    ],
+    header={'height': 60}, navbar={'width': 250}
+)
+
+app.layout = dmc.MantineProvider(layout)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

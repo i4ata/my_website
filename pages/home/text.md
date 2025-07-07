@@ -1,6 +1,8 @@
-# Hello and welcome to my website
+# Home
 
-My name is Ivaylo Rusinov, currently a 2nd year MSc student at the University of Groningen and finishing up my Master's thesis that is done in collaboration with the Department of Nephrology at the University Medical Center Groningen (we are working on publishing it!). I am an aspiring data scientist and software engineer! Aside from my studies, I am a teaching assistant at the university for various courses, both at the Bachelor and the Master level. You can contact me through [Gmail](mailto:ivaylo.russinov@gmail.com), [LinkedIn](https://www.linkedin.com/in/ivaylo-rusinov-7002b2230/), or [GitHub](https://github.com/i4ata).
+Welcome to my website! My name is Ivaylo Rusinov, currently a 2nd year MSc student at the University of Groningen and finishing up my Master's thesis that is done in collaboration with the Department of Nephrology at the University Medical Center Groningen (we are working on publishing it!). I am an aspiring data scientist and software engineer! Aside from my studies, I am a teaching assistant at the university for various courses, both at the Bachelor and the Master level. You can contact me through [Gmail](mailto:ivaylo.russinov@gmail.com), [LinkedIn](https://www.linkedin.com/in/ivaylo-rusinov-7002b2230/), or [GitHub](https://github.com/i4ata). Also, check out my project on the left!
+
+<!-- A -->
 
 This website is written using Plotly's [Dash](https://dash.plotly.com/) and is self-hosted on this bad boi (Raspberry Pi 5) at home:
 
@@ -11,6 +13,8 @@ It is funneled to the web using [Tailscale](https://tailscale.com/). The source 
 The links at the top of this page redirect to some of my passion projects that I work on from time to time alongside my studies. Special attention is paid to ensure that the technicalities of each project are throroughly explained and the source code that runs in the backend is maximally accurate, efficient, and concise. Although the general topics discussed in the projects are technically already known to the world, the implementations, interactions, and explanations  are 100% original. Let me know if you have some ideas on how to improve something!
 
 The majority of the focus during the development of this website is in the quality of the projects and the interactions rather than the design. That is why everything looks so barebones. It will definitely be a project for the future to make everything prettier :)
+
+<!-- A -->
 
 Tools that I use on a daily basis include: ![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/azuresqldatabase/azuresqldatabase-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg#icon)
 

@@ -11,7 +11,7 @@ from pages.sebra.utils import (
     compare_codes, make_pies, make_timeline, plot_primary_orgs, compare_weekdays, plot_treemap, make_sankey
 )
 
-register_page(__name__, path='/sebra', name='SEBRA Payments', order=1)
+register_page(__name__, path='/sebra', name='SEBRA Payments', order=1, icon='fluent-emoji:heavy-dollar-sign')
 
 example_query = """SELECT ORGANIZATION, PRIMARY_ORGANIZATION, ROUND(AVG(AMOUNT)) AS MEAN_AMOUNT, COUNT(AMOUNT) AS TOTAL_PAYMENTS 
 FROM payments 

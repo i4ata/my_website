@@ -12,7 +12,7 @@ from utils import updatemenu
 with open('pages/three_body_problem/text.md') as f:
     text = f.read()
 
-register_page(__name__, path='/3bp', name='The N-Body Problem + Interaction', order=5)
+register_page(__name__, path='/3bp', name='The N-Body Problem', order=5, icon='fluent-emoji:ringed-planet')
 
 layout = html.Div([
     dcc.Markdown(text, mathjax=True, link_target='_blank', dangerously_allow_html=True),

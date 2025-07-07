@@ -17,7 +17,7 @@ with open('pages/backprop/text.md') as f:
 with open('pages/backprop/text_batches.md') as f:
     text_batches = f.read()
 
-register_page(__name__, path='/backprop', name='Backpropagation + Interaction', order=8)
+register_page(__name__, path='/backprop', name='Backpropagation', order=8, icon='fluent:math-formula-16-regular')
 
 layout = html.Div([
     dcc.Markdown(text, mathjax=True, link_target='_blank'),

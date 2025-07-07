@@ -1,6 +1,8 @@
 dash
 dash_bootstrap_components
 dash_bootstrap_templates
+dash_mantine_components
+dash_iconify
 dash_cytoscape
 numpy
 pandas
