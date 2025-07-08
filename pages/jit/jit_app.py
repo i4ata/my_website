@@ -216,7 +216,7 @@ def generate(n_clicks, lengths, ee_true):
             {'Angle': 'φ'} | {f'Joint {i}': round(angles_3d[i, 1], 4) for i in range(n)}
         ]
     return (
-        dcc.Graph(figure=fig, id=f'graph_{d}d'), 
+        dcc.Graph(figure=fig, id=f'graph_{n_clicks}d'), 
         html.Div([
             html.Label('Found optimal angles (in radians)'),
             dash_table.DataTable(data=data, columns=columns)

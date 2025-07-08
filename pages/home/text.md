@@ -1,6 +1,6 @@
 # Home
 
-Welcome to my website! My name is Ivaylo Rusinov, currently a 2nd year MSc student at the University of Groningen and finishing up my Master's thesis that is done in collaboration with the Department of Nephrology at the University Medical Center Groningen (we are working on publishing it!). I am an aspiring data scientist and software engineer! Aside from my studies, I am a teaching assistant at the university for various courses, both at the Bachelor and the Master level. You can contact me through [Gmail](mailto:ivaylo.russinov@gmail.com), [LinkedIn](https://www.linkedin.com/in/ivaylo-rusinov-7002b2230/), or [GitHub](https://github.com/i4ata). Also, check out my project on the left!
+Welcome to my website! My name is Ivaylo Rusinov, currently a 2nd year MSc student at the University of Groningen and finishing up my Master's thesis that is done in collaboration with the Department of Nephrology at the University Medical Center Groningen (we are working on publishing it!). I am an aspiring data scientist and software engineer! Aside from my studies, I am a teaching assistant at the university for various courses, both at the Bachelor and the Master level. You can contact me through [Gmail](mailto:ivaylo.russinov@gmail.com), [LinkedIn](https://www.linkedin.com/in/ivaylo-rusinov-7002b2230/), or [GitHub](https://github.com/i4ata). Also, check out my projects on the left!
 
 <!-- A -->
 
@@ -17,16 +17,6 @@ The majority of the focus during the development of this website is in the quali
 <!-- A -->
 
 Tools that I use on a daily basis include: ![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/azuresqldatabase/azuresqldatabase-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg#icon)![](https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg#icon)
-
-My main technical topics of interest in no particular order are:
-
-- Data Science
-- Machine Learning
-- Deep Learning
-- MLOps
-- Mathematics
-- Computer Vision
-- Reinforcement Learning
 
 <br>Full list of courses that I have been a teaching assistant for (no particular order):
 

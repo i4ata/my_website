@@ -1,11 +1,10 @@
 from dash import Input, Output, State, dcc, html, dash_table, no_update, Patch, ctx, register_page, callback
-from dash.exceptions import PreventUpdate
+import dash_mantine_components as dmc
 from dash.dash_table.Format import Format
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Literal, List, Union
-import traceback
+from typing import Optional, List
 from pages.sebra.utils import (
     con, df_clients, df_orgs, df_payments, df_primary_orgs, df_sebra, pies, pay_codes, 
     compare_codes, make_pies, make_timeline, plot_primary_orgs, compare_weekdays, plot_treemap, make_sankey
@@ -28,16 +27,25 @@ with open('pages/sebra/text.md') as f:
     text = f.read()
 
 layout = html.Div([
-    dcc.Markdown(text, link_target='_blank', dangerously_allow_html=True),
+
     # dcc.Graph(figure=make_sankey()),
-    html.Div([
-        html.P('Overall stats:'),
-        html.Ul([
-            html.Li(f'Total amount spent: {round(df_payments["AMOUNT"].sum()):,}'),
-            html.Li(f'Total number of transactions: {len(df_payments):,}'),
-            html.Li(f'Number of unique clients: {df_payments["CLIENT_ID"].nunique():,}'),
-            html.Li(f'Number of unique organizations: {df_payments["ORGANIZATION_ID"].nunique():,}')
-        ])
+    html.H1('SEBRA Payments Q1 of 2025'),
+    dmc.Grid([
+        dmc.GridCol(
+            [
+                dcc.Markdown(text, link_target='_blank', dangerously_allow_html=True),
+                html.Div([
+                    html.P('Overall stats:'),
+                    html.Ul([
+                        html.Li(f'Total amount spent: {round(df_payments["AMOUNT"].sum()):,}'),
+                        html.Li(f'Total number of transactions: {len(df_payments):,}'),
+                        html.Li(f'Number of unique clients: {df_payments["CLIENT_ID"].nunique():,}'),
+                        html.Li(f'Number of unique organizations: {df_payments["ORGANIZATION_ID"].nunique():,}')
+                    ])
+                ]),
+            ], span=6
+        ),
+        dmc.GridCol(html.Img(src='assets/sebra/ER.svg'), span=6)
     ]),
     dcc.Store(id='tab_query'),
     dcc.Tabs(

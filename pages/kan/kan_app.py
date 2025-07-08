@@ -67,6 +67,7 @@ layout = html.Div([
     html.Br(),
     html.Div(id='weights_container'),
     html.Button('Random', id='random_weights'),
+    html.Button('Reset', id='reset_weights'),
     dcc.Graph(id='basis_elements'),
     html.Label(id='error'),
     dcc.Markdown(text[1], mathjax=True, link_target='_blank', dangerously_allow_html=True),
@@ -122,14 +123,15 @@ def plot_spline(data: Dict[Literal['source', 'target'], str]):
     Output('weights_container', 'children'),
     Input('n', 'value'),
     Input('random_weights', 'n_clicks'),
+    Input('reset_weights', 'n_clicks'),
     State({'type': 'w', 'index': ALL}, 'value')
 )
-def set_weights(n: int, n_clicks: int, ws: List[float]):
+def set_weights(n: int, random: int, reset: int, ws: List[float]):
     
-    if (diff := n - len(ws)) > 0:
-        ws.extend([1] * diff)
+    if (diff := n - len(ws)) > 0: ws.extend([1] * diff)
 
     if ctx.triggered_id == 'random_weights': ws = np.round(np.random.rand(len(ws)) * 2 - 1, 1)
+    if ctx.triggered_id == 'reset_weights': ws = np.ones(len(ws))
         
     inputs = [html.Label('Choose the weights of the basis elements')] + [
         html.Div([
@@ -166,7 +168,7 @@ def plot_basis(n: int, p: int, ws: List[float]):
         data=[
             go.Scatter(
                 x=xs, 
-                y=ys[i], 
+                y=ys[i] * ws[i], 
                 mode='lines', 
                 name=f'Basis {i+1}', 
             ) 

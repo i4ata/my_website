@@ -11,9 +11,6 @@ warnings.filterwarnings('ignore')
 SCHIPHOL_LON = 4.674
 SCHIPHOL_LAT = 52.309
 
-# engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
-# engine = create_engine('mysql+pymysql://root:@localhost:3306/schiphol')
-
 register_page(__name__, path='/schiphol', name='Schiphol Airport ETL', order=2, icon='fluent-emoji:airplane')
 
 df_flights: Optional[pd.DataFrame] = None
@@ -29,7 +26,9 @@ df_destinations: Optional[pd.DataFrame] = None
 def load_page(pathname: Optional[str]):
     global df_flights, df_airlines, df_destinations
 
-    engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
+    # engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
+    engine = create_engine('mysql+pymysql://root:@localhost:3306/schiphol')
+
     read_sql_table = lambda table, index: pd.read_sql(f'select * from {table}', engine, index_col=index)
 
     if pathname is not None and pathname == '/schiphol':
@@ -62,7 +61,15 @@ def plot_airlines() -> go.Figure:
         .unstack(fill_value=0)
         .merge(df_airlines, left_on='airlineCode', right_on='nvls')
         .rename(columns={'publicName': 'Airline', 'A': 'Arrivals', 'D': 'Departures'})
+        [['Airline', 'Departures', 'Arrivals']]
+        .set_index('Airline')
+        .assign(total=lambda airline: airline['Departures'] + airline['Arrivals'])
+        .sort_values('total', ascending=False)
     )
+    other = df.query('total < 20')
+    df = df.drop(other.index)
+    df.loc['Other'] = other.sum()
+
     fig = px.bar(
         data_frame=df.reset_index(), 
         y=['Arrivals', 'Departures'], 
@@ -73,7 +80,7 @@ def plot_airlines() -> go.Figure:
             'value': 'Count'
         }
     )
-    fig.update_layout(barmode='stack', xaxis={'categoryorder':'total descending'})
+    fig.update_layout(barmode='stack', xaxis={'categoryorder': 'array', 'categoryarray': df.index.tolist()})
     return fig
 
 def plot_flights() -> go.Figure:

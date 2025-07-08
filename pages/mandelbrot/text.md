@@ -6,18 +6,6 @@ $$
 z\gets z^2+c
 $$
 
-A complex number of the form $c=a+bi$ can be squared using simple arithmetics as follows:
-
-$$
-c^2=(a+bi)^2=a^2+2abi+(bi)^2=(a^2-b^2)+2abi
-$$
-
-Two complex numbers $c_1=a_1+b_1i$ and $c_2=a_2+b_2i$ can be simply added as follows:
-
-$$
-c_1+c_2=a_1+b_1i+a_2+b_2i=(a_1+a_2)+(b_1+b_2)i
-$$
-
 If the magintude of $z$, i.e. $|z|=\sqrt{a^2+b^2}$, shoots to infinity as we iterate, then $c$ is not a member of the set. Otherwise, if it remains bounded by a certain value, then $c$ is a member of the set. Commonly, the number 2 is chosen as a threshold. That is, if at any point the magintude of $z$ exceeds 2, then $c$ is excluded from the set. This is the plot for different values of $c$ (real part on the x-axis and imaginary part on the y-axis):
 
 ![MandelbrotSetViz](../../assets/mandelbrot/image.png#mandelbrot_img)
