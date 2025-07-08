@@ -48,7 +48,7 @@ layout = dmc.AppShell(
         dcc.Location(id='url'),
         dmc.AppShellHeader(dmc.Title('My Projects')),
         dmc.AppShellNavbar(navbar),
-        dmc.AppShellMain(dmc.Container(dash.page_container, px=20, size='100%')),
+        dmc.AppShellMain(dmc.Container(dash.page_container, px=20, size='100%', pb=250)),
     ],
     header={'height': 60}, navbar={'width': 250}
 )

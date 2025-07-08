@@ -12,11 +12,9 @@ SCHIPHOL_LON = 4.674
 SCHIPHOL_LAT = 52.309
 
 # engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
-engine = create_engine('mysql+pymysql://root:@localhost:3306/schiphol')
+# engine = create_engine('mysql+pymysql://root:@localhost:3306/schiphol')
 
 register_page(__name__, path='/schiphol', name='Schiphol Airport ETL', order=2, icon='fluent-emoji:airplane')
-
-read_sql_table = lambda table, index: pd.read_sql(f'select * from {table}', engine, index_col=index)
 
 df_flights: Optional[pd.DataFrame] = None
 df_airlines: Optional[pd.DataFrame] = None
@@ -30,6 +28,10 @@ df_destinations: Optional[pd.DataFrame] = None
     Input('url', 'pathname'))
 def load_page(pathname: Optional[str]):
     global df_flights, df_airlines, df_destinations
+
+    engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
+    read_sql_table = lambda table, index: pd.read_sql(f'select * from {table}', engine, index_col=index)
+
     if pathname is not None and pathname == '/schiphol':
         df_flights = read_sql_table('flights', index='id')
         df_airlines = read_sql_table('airlines', index='nvls')
