@@ -1,4 +1,4 @@
-from dash import Output, Input, State, clientside_callback, callback, no_update
+from dash import Output, Input, State, clientside_callback, callback, no_update, dcc
 import plotly.express as px
 import numpy as np
 import pandas as pd
@@ -12,18 +12,15 @@ from pages.thesis.scripts.most_common_tree import MostCommonNode
 @callback(
     Output(PREFIX+'intro', 'children'),
     Output(PREFIX+'cyto-tree', 'elements'),
-    Output(PREFIX+'txt-warning', 'children'),
     Input('url', 'pathname')
 )
 def load_page(pathname: Optional[str]):
-    if utils.helper is None: return None, [], 'Go back to Thesis and choose a forest first!'
-    if pathname == '/thesis/most_common_tree': return (
-        f'The most common tree occurs {utils.helper.forest.highest_frequency}/{len(utils.helper.forest)} times. Click on a node to visualize the distribution of threshold',
-        utils.helper.graph_data_most_common,
-        no_update
+    if pathname != '/thesis/most_common_tree': return no_update, no_update
+    return (
+        [f'The most common tree occurs {utils.helper.forest.highest_frequency}/{len(utils.helper.forest)} times. Click on a node to visualize the distribution of threshold or go back to ', dcc.Link('Model Selection', href='/thesis')],
+        utils.helper.graph_data_most_common
     )
-    return None, [], None
-
+    
 # Called when a node is selected
 @callback(
     Output(PREFIX+'graph-threshold-distribution', 'figure'),

@@ -27,8 +27,6 @@ with open('pages/sebra/text.md') as f:
     text = f.read()
 
 layout = html.Div([
-
-    # dcc.Graph(figure=make_sankey()),
     html.H1('SEBRA Payments Q1 of 2025'),
     dmc.Grid([
         dmc.GridCol(
@@ -55,7 +53,7 @@ layout = html.Div([
                     dcc.Store(id='code_selection'),
                     html.Div([
                         html.H2('SEBRA Pay Codes'),
-                        html.P("Click on the pies' sectors or the bars to get more information about the payments for different categories."),
+                        html.P("Click on the pies' sectors or the bars to get more information the payments for different categories. Scroll down to find specific payments with that code."),
                         html.Div(
                             children=[
                                 dcc.Graph(id='pie', figure=make_pies(), style={'width': '50%'}),
@@ -94,7 +92,7 @@ layout = html.Div([
                         html.H2('Payments Over Time'),
                         html.Label('Choose whether you want to select a single day or a range'),
                         dcc.RadioItems(id='timeline_radio', options=[{'label': 'Single Day', 'value': False}, {'label': 'Range', 'value': True}], value=False),
-                        html.Br(), html.Label('Click on the graph to see more information about that date/range'),
+                        html.Br(), html.Label('Click on the graph to see more information about that date/range. Scroll down to find specific payments for that period.'),
                         dcc.Graph(id='timeline', figure=make_timeline()),
                         html.Label('Format the graph'),
                         dcc.Checklist(id='timeline_options', options=['Log scale', 'Hide weekends & holidays']),
@@ -118,7 +116,7 @@ layout = html.Div([
                     dcc.Store(id='primary_org_selection'),
                     html.Div([
                         html.H2('Primary Organizations'),
-                        html.P('Click on the points to see more details about that organization.'),
+                        html.P('Click on the points to see more details about that organization. Scroll down to find specific payments issued by the organization.'),
                         dcc.Graph(id='primary_orgs', figure=plot_primary_orgs()),
                     ]),
                     html.Div(

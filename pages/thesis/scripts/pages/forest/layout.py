@@ -38,10 +38,10 @@ table_styles = [
 layout = html.Div([
     
     # Used only when the page is loaded but no tree has been selected in Home
-    html.H2('Causal Forest', id=PREFIX+'txt-warning'),
+    html.H2('Causal Forest'),
 
     # Select an individual tree from the whole forest
-    html.P(id=PREFIX+'txt-tree-selection-header'),
+    html.P(['Select a tree to interact with or go back to ', dcc.Link('Model Selection', href='/thesis')]),
     dcc.RadioItems(id=PREFIX+'radio-tree', inline=True),
 
     # Print some information about the selected tree
@@ -56,21 +56,8 @@ layout = html.Div([
         stylesheet=[
             {'selector': 'edge', 'style': {'label': 'data(label)'}},
             {'selector': 'node', 'style': {'label': 'data(label)'}}
-        ]
-    ),
-
-    # Create a graph for the selected tree with graphviz and save it to memory
-    html.Div(
-        children=[
-            html.P('Create a graph for the selected tree and save it to memory'),
-            html.Label('Specify a name: '),
-            dcc.Input('default_name', id=PREFIX+'save-tree-name'),
-            dcc.RadioItems(options=leaf_options, value=False, id=PREFIX+'save-tree-radio-leaves', **persist),
-            html.Button('To Graphviz', id=PREFIX+'save-tree-button-save'),
-            html.P(id=PREFIX+'save-tree-txt-output')
         ],
-        id=PREFIX+'save-tree-div',
-        hidden=True,
+        style={'width': '50vw', 'height': '90vh'}
     ),
 
     # Show statistics for that node in text

@@ -1,6 +1,4 @@
 from dash import Output, Input, State, ctx, no_update, html, callback, clientside_callback
-from dash.exceptions import PreventUpdate
-import traceback
 import numpy as np
 import pandas as pd
 from typing import Literal, Optional, Dict, List, Any
@@ -14,13 +12,10 @@ PREFIX='forest-'
 
 @callback(
     Output(PREFIX+'radio-tree', 'options'),
-    Output(PREFIX+'txt-warning', 'children'),
-    Output(PREFIX+'txt-tree-selection-header', 'children'),
     Input('url', 'pathname')
 )
 def load_page(pathname: str):
-    if utils.helper is None: return [], 'Go back to Thesis and choose a forest first!', None
-    if pathname != '/thesis/forest': return [], no_update, None
+    if pathname != '/thesis/forest': return no_update
     
     options = [
         {
@@ -36,35 +31,22 @@ def load_page(pathname: str):
         }
         for i in range(len(utils.helper.forest))
     ]
-    return options, no_update, 'Select a tree from the forest to interact!'
+    return options
     
 @callback(
     Output(PREFIX+'cyto-tree', 'elements'),
     Output(PREFIX+'cyto-tree', 'tapNodeData'),
     Output(PREFIX+'cyto-tree', 'selectedNodeData'),
     Output(PREFIX+'txt-tree', 'children'),
-    Output(PREFIX+'save-tree-div', 'hidden'),
-    Input(PREFIX+'radio-tree', 'value'),
+    Input(PREFIX+'radio-tree', 'value')
 )
 def select_tree(tree_idx: Optional[int]):
-    if tree_idx is None: return [], None, None, None, True
+    if tree_idx is None: return [], None, None, None
     tree_info = (
         [f'You selected tree {tree_idx}, It appears {utils.helper.forest.popularity_counts[tree_idx]} times in the forest'] + 
         ([html.Br(), 'This tree is trained on the original (non-bootstrapped) data'] if tree_idx == len(utils.helper.forest)-1 else [])
     )
-    return utils.helper.graph_data[tree_idx], None, None, tree_info, True # Set to false to enable making pdf graphs from the tree 
-
-@callback(
-    Output(PREFIX+'save-tree-txt-output', 'children'),
-    Input(PREFIX+'save-tree-button-save', 'n_clicks'),
-    State(PREFIX+'radio-tree', 'value'),
-    State(PREFIX+'save-tree-name', 'value'),
-    State(PREFIX+'save-tree-radio-leaves', 'value')
-)
-def save_tree(n_clicks: Optional[int], tree_idx: Optional[int], name: str, plot_leaves: bool):
-    if n_clicks is None or tree_idx is None or utils.helper is None: return no_update
-    utils.helper.forest.trees[tree_idx].show_tree(df=utils.helper.forest.df, name=name, plot_leaf=plot_leaves)
-    return f'Tree #{tree_idx} successfully saved at resources/graphviz/{name}.pdf'
+    return utils.helper.graph_data[tree_idx], None, None, tree_info 
 
 @callback(
     Output(PREFIX+'txt-click-tree-node', 'children'),
@@ -287,60 +269,56 @@ def select_in_stratified_table(
     current_styles: List[Dict[str, Any]]
 ):
     """Upon selecting a raw or a column in the table, highlight them, and enable the user to select a specific stratum"""
-    try:
-        # If we haven't generated the table everything is default
-        if not table_data: return current_styles, {}, {'display': 'none'}, None
-        node: CausalNode = utils.helper.nodes[tree_idx][node_data['id']]
+    # If we haven't generated the table everything is default
+    if not table_data: return current_styles, {}, {'display': 'none'}, None
+    node: CausalNode = utils.helper.nodes[tree_idx][node_data['id']]
 
-        styles = table_styles.copy() if current_styles else []
-        
-        z = np.array([row['z'] for row in table_data], dtype=float)
-        if not np.isnan(z).all():
-            best_index = table_data[np.nanargmax(np.abs(z))]['variable']
-            styles.extend([
-                {
-                    'if': {
-                        'filter_query': f'{{variable}} = `{best_index}` && {{p_corrected}} <= 0.05'
-                    },
-                    'backgroundColor': 'sandybrown'
+    styles = table_styles.copy() if current_styles else []
+    
+    z = np.array([row['z'] for row in table_data], dtype=float)
+    if not np.isnan(z).all():
+        best_index = table_data[np.nanargmax(np.abs(z))]['variable']
+        styles.extend([
+            {
+                'if': {
+                    'filter_query': f'{{variable}} = `{best_index}` && {{p_corrected}} <= 0.05'
                 },
-                {
-                    'if': {
-                        'filter_query': f'{{variable}} = `{node.feature}`'
-                    },
-                    'backgroundColor': 'turquoise'
-                }
-            ])
-        
-        border = '3px solid black'
+                'backgroundColor': 'sandybrown'
+            },
+            {
+                'if': {
+                    'filter_query': f'{{variable}} = `{node.feature}`'
+                },
+                'backgroundColor': 'turquoise'
+            }
+        ])
+    
+    border = '3px solid black'
 
-        strata_info = None
-        if selected_columns:
-            c = selected_columns[0]
-            styles.append({'if': {'column_id': c}, 'border-left': border, 'border-right': border})
-        
-        if selected_rows:
-            r = selected_rows[0]
-            styles.append({'if': {'row_index': r}, 'border-bottom': border, 'border-top': border})
-            var = table_data[r]['variable']
-            strata_info = utils.helper.get_stratification_summary(node, var)
-        else:
-            return styles, {}, {'display': 'none'}, None
-        
-        # Case where the column selection triggered the callback but there is already a selected row. In that case, don't redraw the graph
-        if len(ctx.triggered_prop_ids) == 1 and PREFIX+'table-stratified.selected_columns' in ctx.triggered_prop_ids:
-            return styles, no_update, no_update, no_update
-        
-        df_at_node = utils.helper.forest.df.query(node.context) if node.context else utils.helper.forest.df.copy()
-        var, threshold = table_data[r]['variable'], table_data[r]['threshold']
-        fig = utils.helper.show_graph_strata(
-            df_at_node, node.strata[var], var, threshold
-        )
-        return styles, fig, {'display': 'block'}, strata_info
-    except Exception as e:
-        print(traceback.format_exc())
-        raise PreventUpdate
-
+    strata_info = None
+    if selected_columns:
+        c = selected_columns[0]
+        styles.append({'if': {'column_id': c}, 'border-left': border, 'border-right': border})
+    
+    if selected_rows:
+        r = selected_rows[0]
+        styles.append({'if': {'row_index': r}, 'border-bottom': border, 'border-top': border})
+        var = table_data[r]['variable']
+        strata_info = utils.helper.get_stratification_summary(node, var)
+    else:
+        return styles, {}, {'display': 'none'}, None
+    
+    # Case where the column selection triggered the callback but there is already a selected row. In that case, don't redraw the graph
+    if len(ctx.triggered_prop_ids) == 1 and PREFIX+'table-stratified.selected_columns' in ctx.triggered_prop_ids:
+        return styles, no_update, no_update, no_update
+    
+    df_at_node = utils.helper.forest.df.query(node.context) if node.context else utils.helper.forest.df.copy()
+    var, threshold = table_data[r]['variable'], table_data[r]['threshold']
+    fig = utils.helper.show_graph_strata(
+        df_at_node, node.strata[var], var, threshold
+    )
+    return styles, fig, {'display': 'block'}, strata_info
+    
 # Copied from https://stackoverflow.com/questions/78017670/is-it-possible-to-use-the-depthsort-argument-in-breadthfirst-layout-in-dash-cyto
 # Used to make sure that the left child is to the left of the parent and the right child is to the right
 clientside_callback(

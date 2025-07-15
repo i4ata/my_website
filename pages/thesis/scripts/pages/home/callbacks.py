@@ -1,4 +1,4 @@
-from dash import callback, Input, Output, html, State, no_update
+from dash import callback, Input, Output, html, State, no_update, dcc
 from pathlib import Path
 import os
 from typing import List, Any, Optional
@@ -6,6 +6,11 @@ from typing import List, Any, Optional
 from pages.thesis.scripts.pages.home.layout import PREFIX
 import pages.thesis.scripts.pages.utils as utils
 from pages.thesis.scripts.forest import Forest, RegressionForest, SurvivalForest
+
+# This is just a way to load the pickle files that were previously dumped in the original thesis repo
+import sys
+sys.path.append('pages/thesis')
+from scripts.forest import Forest, SurvivalForest, RegressionForest
 
 def format_filename(f: str):
     return (
@@ -41,9 +46,9 @@ def get_summary(forest: Forest, forest_path: str) -> List[Any]:
     return [
         html.P('✅ Model loaded successfully!'),
         html.Ul([
-            html.Li('To interact with the individual trees, go to Forest'),
-            html.Li('To interact with the individual variables, go to Variables'),
-            html.Li('To interact with the most common tree, go to Most Common Tree'),
+            html.Li(['To interact with the individual trees, go to ', dcc.Link('Forest', href='/thesis/forest')]),
+            html.Li(['To interact with the individual variables, go to ', dcc.Link('Variables', href='/thesis/variables')]),
+            html.Li(['To interact with the most common tree, go to ', dcc.Link('Most Common Tree', href='/thesis/most_common_tree')]),
         ]),
         html.P('Summary:'),
         html.Ul([
