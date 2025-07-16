@@ -22,6 +22,13 @@ layout = html.Div([
                     dmc.AccordionPanel(dcc.Markdown(text[2], link_target='_blank', dangerously_allow_html=True))
                 ],
                 value='about_me'
+            ),
+            dmc.AccordionItem(
+                children=[
+                    dmc.AccordionControl('How to run it yourself'),
+                    dmc.AccordionPanel(dcc.Markdown(text[3], link_target='_blank', dangerously_allow_html=True))
+                ],
+                value='run_locally'
             )
         ],
         multiple=True,

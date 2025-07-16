@@ -10,7 +10,7 @@ This website is written using Plotly's [Dash](https://dash.plotly.com/) and is s
 
 It is funneled to the web using [Tailscale](https://tailscale.com/). The source code for the website is available on [GitHub](https://github.com/i4ata/test) as well as a [Docker image](https://hub.docker.com/r/i4ata/my_website). Everything keeping the website running other than the Pi itself, its power supply, and its internet connection, is completely free.
 
-The links at the top of this page redirect to some of my passion projects that I work on from time to time alongside my studies. Special attention is paid to ensure that the technicalities of each project are throroughly explained and the source code that runs in the backend is maximally accurate, efficient, and concise. Although the general topics discussed in the projects are technically already known to the world, the implementations, interactions, and explanations  are 100% original. Let me know if you have some ideas on how to improve something!
+The links to the left redirect to some of my passion projects that I work on from time to time alongside my studies. Special attention is paid to ensure that the technicalities of each project are throroughly explained and the source code that runs in the backend is maximally accurate, efficient, and concise. Although the general topics discussed in the projects are technically already known to the world, the implementations, interactions, and explanations  are 100% original. Let me know if you have some ideas on how to improve something!
 
 The majority of the focus during the development of this website is in the quality of the projects and the interactions rather than the design. That is why everything looks so barebones. It will definitely be a project for the future to make everything prettier :)
 
@@ -36,3 +36,15 @@ Tools that I use on a daily basis include: ![](https://cdn.jsdelivr.net/gh/devic
 
 - BSc Artificial Intelligence at the University of Groningen, 2020-2023 (8.1/10)
 - [Data Science (Software University of Bulgaria, 2022)](../../assets/home/Data%20Science%20-%20June%202022%20-%20Certificate.pdf) (6/6)
+
+<!-- A -->
+
+If you want to run the website yourself, you can clone the repo and spin up Docker as follows:
+
+```bash
+git clone https://github.com/i4ata/my_website website
+cd website
+docker compose up
+```
+
+Now the application can be accessed on `localhost:5000`.

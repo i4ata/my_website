@@ -52,7 +52,7 @@ layout = html.Div([
                 children=[
                     dcc.Store(id='code_selection'),
                     html.Div([
-                        html.H2('SEBRA Pay Codes'),
+                        dmc.Title('SEBRA Pay Codes', order=2),
                         html.P("Click on the pies' sectors or the bars to get more information the payments for different categories. Scroll down to find specific payments with that code."),
                         html.Div(
                             children=[
@@ -73,9 +73,9 @@ layout = html.Div([
                     html.Div(
                         children=[
                             html.Div(id='sebra_summary'),
-                            html.Br(), html.P('Most paying organizations'),
+                            html.Br(), dmc.Title('Most paying organizations', order=3),
                             dash_table.DataTable(id='sebra_orgs_table'),
-                            html.Br(), html.P('Most receiving clients'),
+                            html.Br(), dmc.Title('Most receiving clients', order=3),
                             dash_table.DataTable(id='sebra_clients_table')
                         ],
                         id='sebra_summary_container',
@@ -89,19 +89,29 @@ layout = html.Div([
                 children=[
                     dcc.Store(id='date_selection'),
                     html.Div([
-                        html.H2('Payments Over Time'),
-                        html.Label('Choose whether you want to select a single day or a range'),
-                        dcc.RadioItems(id='timeline_radio', options=[{'label': 'Single Day', 'value': False}, {'label': 'Range', 'value': True}], value=False),
-                        html.Br(), html.Label('Click on the graph to see more information about that date/range. Scroll down to find specific payments for that period.'),
+                        dmc.Title('Payments Over Time', order=2),
+                        html.P('Click on the graph to see more information about that date/range. Scroll down to find specific payments for that period.'),
+                        dmc.RadioGroup(
+                            children=dmc.Group([dmc.Radio(l, value=l) for l in ('Single Day', 'Range')]),
+                            value='Single Day', id='timeline_radio'
+                        ),
                         dcc.Graph(id='timeline', figure=make_timeline()),
-                        html.Label('Format the graph'),
-                        dcc.Checklist(id='timeline_options', options=['Log scale', 'Hide weekends & holidays']),
+                        dmc.ChipGroup(
+                            children=dmc.Group([
+                                dmc.Chip('Log scale', value='Log scale'), 
+                                dmc.Chip('Hide weekends & holidays', value='Hide weekends & holidays')
+                            ]),
+                            persistence_type='session',
+                            id='timeline_options',
+                            deselectable=True,
+                            multiple=True
+                        ),
                         html.Br()
                     ]),
                     html.Div(
                         children=[
                             html.Div(id='timeline_output'),
-                            html.P('Largest payments'),
+                            dmc.Title('Largest payments', order=3),
                             dash_table.DataTable(id='timeline_table')
                         ],
                         id='timeline_info',
@@ -122,7 +132,7 @@ layout = html.Div([
                     html.Div(
                         children=[
                             html.Div(id='primary_orgs_output'),
-                            html.P('Most receiving clients'),
+                            dmc.Title('Most receiving clients', order=3),
                             dash_table.DataTable(id='primary_orgs_table')
                         ],
                         id='primary_orgs_info',
@@ -159,57 +169,91 @@ layout = html.Div([
     ),
     html.Div(
         children=[
-            # ORGANIZATIONS
-            html.Br(), html.Button('Find a specific organization', id='orgs_button'), html.Br(),
-            html.Div(
+            html.Br(),
+            dmc.Accordion(
                 children=[
-                    html.P(id='orgs_filter_summary'),
-                    dcc.RadioItems(id='orgs_initials', inline=True),
-                    html.Label('Minimum Total Amount:'), dcc.Input(id='orgs_min_amount', type='number', min=0, step=1_000),
-                    html.Label('Minimum Number of Payments:'), dcc.Input(id='orgs_min_payments', type='number', min=0, step=1),
-                    html.Br(),
-                    html.Label('Maximum Total Amount:'), dcc.Input(id='orgs_max_amount', type='number', min=0, step=1_000),
-                    html.Label('Maximum Number of Payments:'), dcc.Input(id='orgs_max_payments', type='number', min=0, step=1),
-                    html.Br(), html.Button('Submit', id='submit_orgs_filter'), html.Br(),
-                    html.P(id='orgs_filter_output_summary')
+                    dmc.AccordionItem([
+                        dmc.AccordionControl(dmc.Text('Organizations', size='lg')),
+                        dmc.AccordionPanel([
+                            html.Div(
+                                children=[
+                                    html.P(id='orgs_filter_summary'),
+                                    dmc.SegmentedControl(id='orgs_initials', data=[]),
+                                    html.Br(), html.Br(),
+                                    dmc.Group(
+                                        children=[
+                                            dmc.NumberInput(id='orgs_min_amount', placeholder='E.g., 0', label='Minimum Total Amount', min=0, step=1_000),
+                                            dmc.NumberInput(id='orgs_max_amount', placeholder='E.g., 1000000', label='Maximum Total Amount', min=0, step=1_000),
+                                        ]
+                                    ),
+                                    html.Br(),
+                                    dmc.Group(
+                                        children=[
+                                            dmc.NumberInput(id='orgs_min_payments', placeholder='E.g., 0', label='Minimum Number of Payments', min=0, step=1),
+                                            dmc.NumberInput(id='orgs_max_payments', placeholder='E.g., 100', label='Maximum Number of Payments', min=0, step=1)
+                                        ]
+                                    ),
+                                    html.Br(), 
+                                    dmc.Button('Submit', id='submit_orgs_filter'), html.Br(),
+                                    html.P(id='orgs_filter_output_summary')
+                                ],
+                                id='filter_orgs',
+                                hidden=True
+                            ),
+                            html.Div(
+                                children=[
+                                    dmc.Select(id='orgs_dropdown', placeholder='Select an organization ...', data=[], searchable=True),
+                                    html.Br(), dash_table.DataTable(id='individual_org_table'), html.Br()
+                                ],
+                                id='individual_org_container',
+                                hidden=True,
+                            )
+                        ]),
+                    ], value='orgs_tab'),
+                    dmc.AccordionItem([
+                        dmc.AccordionControl(dmc.Text('Clients', size='lg')),
+                        dmc.AccordionPanel([
+                            html.Div(
+                                children=[
+                                    html.P(id='clients_filter_summary'),
+                                    dmc.SegmentedControl(id='clients_initials', data=[]),
+                                    html.Br(), html.Br(),
+                                    dmc.Group(
+                                        children=[
+                                            dmc.NumberInput(id='clients_min_amount', placeholder='E.g., 0', label='Minimum Total Amount', min=0, step=1_000),
+                                            dmc.NumberInput(id='clients_max_amount', placeholder='E.g., 1000000', label='Maximum Total Amount', min=0, step=1_000),
+                                        ]
+                                    ),
+                                    html.Br(),
+                                    dmc.Group(
+                                        children=[
+                                            dmc.NumberInput(id='clients_min_payments', placeholder='E.g., 0', label='Minimum Number of Payments', min=0, step=1),
+                                            dmc.NumberInput(id='clients_max_payments', placeholder='E.g., 100', label='Maximum Number of Payments', min=0, step=1)
+                                        ]
+                                    ),
+                                    html.Br(), 
+                                    dmc.Button('Submit', id='submit_clients_filter'), html.Br(),
+                                    html.P(id='clients_filter_output_summary')
+                                ],
+                                id='filter_clients',
+                                hidden=True
+                            ),
+                            html.Div(
+                                children=[
+                                    dmc.Select(id='clients_dropdown', placeholder='Select a client ...', data=[], searchable=True),
+                                    html.Br(), dash_table.DataTable(id='individual_client_table'), html.Br()
+                                ],
+                                id='individual_client_container',
+                                hidden=True,
+                            ),
+                        ])
+                    ], value='clients_tab')
                 ],
-                id='filter_orgs',
-                hidden=True
-            ),
-            html.Div(
-                children=[
-                    dcc.Dropdown(id='orgs_dropdown'),
-                    html.Br(), dash_table.DataTable(id='individual_org_table'), html.Br()
-                ],
-                id='individual_org_container',
-                hidden=True,
-            ),
-
-            # CLIENTS
-            html.Br(), html.Button('Find a specific client', id='clients_button'), html.Br(),
-            html.Div(
-                children=[
-                    html.P(id='clients_filter_summary'),
-                    dcc.RadioItems(id='clients_initials', inline=True),
-                    html.Label('Minimum Total Amount: '), dcc.Input(id='clients_min_amount', type='number', min=0, step=1_000),
-                    html.Label('Minimum Number of Payments:'), dcc.Input(id='clients_min_payments', type='number', min=0, step=1),
-                    html.Br(),
-                    html.Label('Maximum Total Amount:'), dcc.Input(id='clients_max_amount', type='number', min=0, step=1_000),
-                    html.Label('Maximum Number of Payments:'), dcc.Input(id='clients_max_payments', type='number', min=0, step=1),
-                    html.Br(), html.Button('Submit', id='submit_clients_filter'), html.Br(),
-                    html.P(id='clients_filter_output_summary')
-                ],
-                id='filter_clients',
-                hidden=True
-            ),
-            html.Div(
-                children=[
-                    dcc.Dropdown(id='clients_dropdown'),
-                    html.Br(), dash_table.DataTable(id='individual_client_table'), html.Br()
-                ],
-                id='individual_client_container',
-                hidden=True,
-            ),
+                multiple=True,
+                chevronPosition='left',
+                variant='separated',
+                id='accordion'
+            )
         ],
         id='filter_container',
         hidden=True
@@ -407,22 +451,23 @@ def draw_rectangle(x1: str, x2: Optional[str] = None) -> dict:
     Input('timeline_radio', 'value'),
     State('date_selection', 'data')
 )
-def plot_timeline(options, click_data, range, date):
+def plot_timeline(options, click_data, radio, date):
     
     if options is None and click_data is None: return no_update, no_update
     if ctx.triggered_id == 'timeline_options':
+        if options is None: options = []
         fig = make_timeline('Hide weekends & holidays' in options, 'Log scale' in options)
         if date is not None: fig.add_shape(**draw_rectangle(*date))
         return fig, no_update
 
     fig = Patch()
     if ctx.triggered_id == 'timeline_radio':
-        if range: return no_update, no_update
+        if radio == 'Range': return no_update, no_update
         fig['layout']['shapes'] = [draw_rectangle(date[0])]
         return fig, [date[0]]
 
     new_date = click_data['points'][0]['x']
-    if range and date is not None: new_date = sorted((new_date, date[0]))
+    if radio == 'Range' and date is not None: new_date = sorted((new_date, date[0]))
     else: new_date = [new_date]
     fig['layout']['shapes'] = [draw_rectangle(*new_date)]
     return fig, new_date
@@ -507,49 +552,56 @@ def primary_orgs_summary(primary_org_code: int):
 # SUMMARIES
 
 @callback(
-    Output('filter_orgs', 'hidden'),
-    Output('orgs_filter_summary', 'children'),
-    Output('orgs_initials', 'options'),
-    Output('filter_clients', 'hidden'),
-    Output('clients_filter_summary', 'children'),
-    Output('clients_initials', 'options'),
-    Input('orgs_button', 'n_clicks'),
-    Input('clients_button', 'n_clicks'),
+    Output('accordion', 'value'),
     Input('tabs', 'value'),
     Input('tab_query', 'data')
 )
-def enable_finding_organizations_or_clients(orgs: int, clients: int, tab: str, query: str):
+def reset_accordion(tab: str, query: str):
+    return []
 
-    if orgs is None and clients is None: return [no_update] * 6
-    if ctx.triggered_id in ('tabs', 'tab_query'): return True, no_update, [], True, no_update, []
+@callback(
+    Output('filter_orgs', 'hidden'),
+    Output('orgs_filter_summary', 'children'),
+    Output('orgs_initials', 'data'),
+    Input('accordion', 'value'),
+    Input('tabs', 'value'),
+    Input('tab_query', 'data'),
+    State('filter_orgs', 'hidden')
+)
+def enable_finding_orgs(accordion: List[str], tab: str, query: str, hidden: bool):
+    if ctx.triggered_id in ('tabs', 'tab_query'): return True, no_update, []
+    if not accordion or 'orgs_tab' not in accordion or not hidden: return [no_update] * 3
+    df_queried = df_payments.merge(df_orgs, on='ORGANIZATION_ID').query(query)
+    unique_orgs_initials = np.sort(
+        pd.Series(df_queried['ORGANIZATION'].unique())
+        .str.upper().str.extract(f'([{bg_letters}])', expand=False).unique()
+    )
+    nunique_orgs = df_queried['ORGANIZATION_ID'].nunique()
+    return False, f'Here you can see payments made by specific organizations. There are {nunique_orgs} unique ones. You can filter them first', unique_orgs_initials
 
+@callback(
+    Output('filter_clients', 'hidden'),
+    Output('clients_filter_summary', 'children'),
+    Output('clients_initials', 'data'),
+    Input('accordion', 'value'),
+    Input('tabs', 'value'),
+    Input('tab_query', 'data'),
+    State('filter_clients', 'hidden')
+)
+def enable_finding_clients(accordion: List[str], tab: str, query: str, hidden: bool):
+    if ctx.triggered_id in ('tabs', 'tab_query'): return True, no_update, []
+    if not accordion or 'clients_tab' not in accordion or not hidden: return [no_update] * 3
     df_queried = df_payments.merge(df_orgs, on='ORGANIZATION_ID').merge(df_clients, on='CLIENT_ID').query(query)
-    
-    if ctx.triggered_id == 'orgs_button':
-        unique_orgs_initials = np.sort(
-            pd.Series(df_queried['ORGANIZATION'].unique())
-            .str.upper().str.extract(f'([{bg_letters}])', expand=False).unique()
-        )
-        nunique_orgs = df_queried['ORGANIZATION_ID'].nunique()
-        return (
-            False, f'There are {nunique_orgs} unique organizations. You can filter them first', unique_orgs_initials, 
-            no_update, no_update, no_update
-        )
-    
-    else: 
-        unique_clients_initials = np.sort(
-            pd.Series(df_queried['CLIENT_RECEIVER_NAME'].unique())
-            .str.upper().str.extract(f'([{bg_letters}])', expand=False).unique()
-        )
-        nunique_clients = df_queried['CLIENT_ID'].nunique()
-        return (
-            no_update, no_update, no_update,
-            False, f'There are {nunique_clients} unique clients. You can filter them first', unique_clients_initials
-        )
+    unique_clients_initials = np.sort(
+        pd.Series(df_queried['CLIENT_RECEIVER_NAME'].unique())
+        .str.upper().str.extract(f'([{bg_letters}])', expand=False).unique()
+    )
+    nunique_clients = df_queried['CLIENT_ID'].nunique()
+    return False, f'Here you can see payments made by specific organizations. There are {nunique_clients} unique clients. You can filter them first', unique_clients_initials
 
 @callback(
     Output('individual_org_container', 'hidden'),
-    Output('orgs_dropdown', 'options'),
+    Output('orgs_dropdown', 'data'),
     Output('orgs_dropdown', 'value'),
     Output('orgs_initials', 'value'),
     Output('orgs_filter_output_summary', 'children'),
@@ -596,7 +648,7 @@ def select_specifig_org(
 
 @callback(
     Output('individual_client_container', 'hidden'),
-    Output('clients_dropdown', 'options'),
+    Output('clients_dropdown', 'data'),
     Output('clients_dropdown', 'value'),
     Output('clients_initials', 'value'),
     Output('clients_filter_output_summary', 'children'),
