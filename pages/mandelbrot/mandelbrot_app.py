@@ -13,7 +13,7 @@ from utils import slider, updatemenu
 with open('pages/mandelbrot/text.md') as f:
     text = f.read()
 
-register_page(__name__, path='/mandelbrot', name='The Mandelbrot Set', order=9, icon='fluent-emoji:infinity')
+register_page(__name__, path='/mandelbrot', name='The Mandelbrot Set', order=10, icon='fluent-emoji:infinity')
 
 # LAYOUT OF THE APP
 layout = html.Div([
