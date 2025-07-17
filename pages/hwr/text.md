@@ -48,7 +48,7 @@ Image | Inverted | Padded | Components | 2nd largest | Cropped
 :----:|:--------:|:------:|:----------:|:-----------:|:------:
 ![](../../assets/hwr/process/raw.png#hwr) | ![](../../assets/hwr/process/inv.png#hwr) | ![](../../assets/hwr/process/padded.png#hwr) | ![](../../assets/hwr/process/components.png#hwr) | ![](../../assets/hwr/process/extracted_char.png#hwr) | ![](../../assets/hwr/process/cropped.png#hwr)
 
-In Python, this can be done as follows:
+<!-- code -->
 
 ```python
 def _process_image(img: np.ndarray, pad_width: int) -> np.ndarray:
@@ -80,7 +80,11 @@ def _process_image(img: np.ndarray, pad_width: int) -> np.ndarray:
     return img
 ```
 
-By manually checking, it seems that this method works every time for the data at hand. Now that we have many images of characters, we can just draw them on a white canvas, similarly to original scrolls! The first step is to choose which character to draw. To still generate somewhat realistic text without knowing a word of Hebrew, I rely on the n-grams. Basically, I sample a sequence of n-grams and store each letter in a LIFO queue. The next character is simply "popped" from the queue. If the queue is empty, I just sample another sequence and enqueue it. To make the text reflect the frequencies of the n-grams, each n-gram is sampled with a probability proportional to its frequency. This can be done simply as follows:
+<!-- code -->
+
+By manually checking, it seems that this method works every time for the data at hand. Now that we have many images of characters, we can just draw them on a white canvas, similarly to original scrolls! The first step is to choose which character to draw. To still generate somewhat realistic text without knowing a word of Hebrew, I rely on the n-grams. Basically, I sample a sequence of n-grams and store each letter in a LIFO queue. The next character is simply "popped" from the queue. If the queue is empty, I just sample another sequence and enqueue it. To make the text reflect the frequencies of the n-grams, each n-gram is sampled with a probability proportional to its frequency.
+
+<!-- code -->
 
 ```python
 class CharacterFetcher:
@@ -108,7 +112,13 @@ class CharacterFetcher:
         return self.queue.pop(0)
 ```
 
-Next, we need to get an image of the selected character. To add diversity, I use small rotations, shears, dilations, erosions, and scalings of each sampled image at random, analogically to data augmentation. Moreover, each character has a 10% chance to just be the Habakkuk font version of it. To add this to `CharacterFetcher`, we can simply expand the constructor to include the transformation and add functionality to retrieve the images:
+<!-- code -->
+
+Next, we need to get an image of the selected character. To add diversity, I use small rotations, shears, dilations, erosions, and scalings of each sampled image at random, analogically to data augmentation. Moreover, each character has a 10% chance to just be the Habakkuk font version of it.
+
+<!-- code -->
+
+To add this to `CharacterFetcher`, we can simply expand the constructor to include the transformation and add functionality to retrieve the images:
 
 ```python
 class CharacterFetcher:
@@ -176,7 +186,13 @@ Here, the `transform_args` as well as any other parameters are passed from a con
         p: 0.5
 ```
 
-Now that we can generate text and images of characters, we can simply paste these images on empty lines, and arrange these lines in a page, which would hopefully resemble the Dead Sea Scrolls. Let us first look at how to draw on a line:
+<!-- code -->
+
+Now that we can generate text and images of characters, we can simply paste these images on empty lines, and arrange these lines in a page, which would hopefully resemble the Dead Sea Scrolls. 
+
+<!-- code -->
+
+Let us first look at how to draw on a line:
 
 ```python
 class ScrollGenerator:
@@ -287,7 +303,11 @@ Finally, after we are done generating the current word, we can add more space be
             x -= spacing
 ```
 
-That's it! Now we have our own artificial lines. An example line is this:
+That's it! Now we have our own artificial lines. 
+
+<!-- code -->
+
+An example line is this:
 
 ![](../../assets/hwr/raw_line.png#hwr)
 
@@ -295,7 +315,9 @@ And the labels:
 
 ![](../../assets/hwr/labels_line.png#hwr)
 
-Now that we have the lines, we can easily stack them on a white canvas:
+Now that we have the lines, we can easily stack them on a white canvas.
+
+<!-- code -->
 
 ```python
     def generate_sea_scroll(
@@ -333,6 +355,8 @@ Now that we have the lines, we can easily stack them on a white canvas:
         return final_image, np.array(all_boxes), full_text
 ```
 
+<!-- code -->
+
 The randomness here is the offset between 2 consecutive lines. Example generated scroll:
 
 Image | Labels
@@ -350,6 +374,8 @@ where `image` is a binary numpy array. This packs only the image's rows, which c
 One thing is missing though... the generated images seem to be with perfect quality! To account for that, we "corrupt" the images a bit during training using data augmentation. Basically what is done is, between 200 and 400 white rectangles with both dimensions ranging between 4 and 15 pixels are randomly drawn on the image to simulate erased characters. The same is done with black rectangles to simulate other artifacts such as spilled ink. An example:
 
 ![](../../assets/hwr/example_augmented.png)
+
+<!-- code -->
 
 In python, we can do this when sampling from our `torch.utils.data.Dataset` as follows:
 
@@ -416,9 +442,13 @@ augmentation:
       p: 1
 ```
 
+<!-- code -->
+
 ### Object Detection
 
 Now that we have our data, we can simply fine-tune a pretrained object detector. I settled on [Faster R-CNN from torchvision](https://docs.pytorch.org/vision/main/models/faster_rcnn.html) as it simply worked out of the box. However, there are likely other more appropriate choices especially because the R-CNN expects 3-channel inputs but the scrolls are only black and white, therefore, there is some redundancy.
+
+<!-- code -->
 
 To implement the model, we simply need to download it from torchvision. Then, we can change the number of detections per image as the scrolls contain way more objects (characters) that there usually are in object detection tasks. I set that to 400. Moreover, the input images are also quite a lot bigger than the default. I set the maximum image size to 3000 pixels per dimension. We then naturally need to overwrite the final layer of the network such that the predicted probability distribution for each bounding box is defined over the appropriate number of classes. In Python, this can be set as follows:
 
@@ -496,9 +526,13 @@ Finally, the model's predictions are postprocessed using non-maximum suppression
         ]
 ```
 
-This entails that if 2 bounding boxes have an Intersection over Union of at least `self.nms_iou_threshold` (set to 0.4), then only the box with the larger "objectness score" (i.e. predicted confidence) is kept. The intersection over union for two bounding boxes resembles the level of overlap between them. It is formally defined as the number of pixels that are inside both boxes divided by the number of pixels inside either box. If the IoU is 1, the boxes are the same, if it is 0, the boxes are not overlapping at all.
+This entails that if 2 bounding boxes have an Intersection over Union of at least `self.nms_iou_threshold` (set to 0.4), then only the box with the larger "objectness score" (i.e. predicted confidence) is kept. The intersection over union for two bounding boxes resembles the level of overlap between them. It is formally defined as the number of pixels that are inside both boxes divided by the number of pixels inside either box. If the IoU is 1, the boxes are the same, if it is 0, the boxes are not overlapping at all. That's it! Now we are ready to train!
 
-That's it! Now we are ready to train. To evaluate the model, I use Mean Precision for IoU of 75% It is calculated as follows:
+<!-- code -->
+
+## Results
+
+To evaluate the model, I use Mean Precision for IoU of 75% It is calculated as follows:
 
 1. Loop over all classes $i$.
 2. Consider only the ground truths and predictions for label $i$.

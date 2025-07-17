@@ -163,6 +163,12 @@ Using this, we need to update the weights $\mathbf{W}$ and propagate the loss by
 The derivative of the loss with respect to the weights $\frac{\partial \mathcal{L}}{\partial \mathbf{W}}\in\mathbb{R}^{n\times m\times b}$ is defined as:
 
 $$
+\frac{\partial\mathcal{L}}{\partial w_{ijk}}=\frac{\partial\mathcal{L}}{\partial y_j}B_k(x_i)
+$$
+
+<!-- derivation -->
+
+$$
 \frac{\partial \mathcal{L}}{\partial \mathbf{W}}=\begin{bmatrix}\begin{bmatrix}\frac{\partial \mathcal{L}}{\partial w_{111}} & \cdots & \frac{\partial \mathcal{L}}{\partial w_{11b}}\\\vdots&\ddots&\vdots\\\frac{\partial \mathcal{L}}{\partial w_{1m1}} & \cdots & \frac{\partial \mathcal{L}}{\partial w_{1mb}}\end{bmatrix}\\\vdots\\\begin{bmatrix}\frac{\partial \mathcal{L}}{\partial w_{n11}} & \cdots & \frac{\partial \mathcal{L}}{\partial w_{n1b}}\\\vdots&\ddots&\vdots\\\frac{\partial \mathcal{L}}{\partial w_{nm1}} & \cdots & \frac{\partial \mathcal{L}}{\partial w_{nmb}}\end{bmatrix}\end{bmatrix}
 $$
 
@@ -190,11 +196,7 @@ $$
 \frac{\partial \mathcal{L}}{\partial w_{ijk}}=\frac{\partial \mathcal{L}}{\partial \mathbf{y}}\frac{\partial\mathbf{y}}{\partial w_{ijk}}=\begin{bmatrix}\frac{\partial \mathcal{L}}{\partial y_1} & \cdots & \frac{\partial \mathcal{L}}{\partial y_m}\end{bmatrix}\begin{bmatrix}0\\\vdots\\B_k(x_i)\\\vdots\\0\end{bmatrix}=\frac{\partial \mathcal{L}}{\partial y_j}B_k(x_i)
 $$
 
-Substituting back we get
-
-$$
-\frac{\partial \mathcal{L}}{\partial \mathbf{W}}=\begin{bmatrix}\begin{bmatrix}\frac{\partial \mathcal{L}}{\partial y_1}B_1(x_1) & \cdots & \frac{\partial \mathcal{L}}{\partial y_1}B_b(x_1)\\\vdots&\ddots&\vdots\\\frac{\partial \mathcal{L}}{\partial y_m}B_1(x_1) & \cdots & \frac{\partial \mathcal{L}}{\partial y_m}B_b(x_1)\end{bmatrix}\\\vdots\\\begin{bmatrix}\frac{\partial \mathcal{L}}{\partial y_1}B_1(x_n) & \cdots & \frac{\partial \mathcal{L}}{\partial y_1}B_b(x_n)\\\vdots&\ddots&\vdots\\\frac{\partial \mathcal{L}}{\partial y_m}B_1(x_n) & \cdots & \frac{\partial \mathcal{L}}{\partial y_m}B_b(x_n)\end{bmatrix}\end{bmatrix}
-$$
+<!-- derivation -->
 
 Now we can simply update the weights with gradient descent
 
@@ -205,6 +207,12 @@ $$
 ### Finding the derivative of the loss with respect to the input
 
 The goal is to find the derivative of the loss with respect to the input $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}\in\mathbb{R}^{1\times n}$, defined as:
+
+$$
+\frac{\partial \mathcal{L}}{\partial x_i}=\sum_{j=1}^m\frac{\partial \mathcal{L}}{\partial y_j}\sum_{k=1}^bw_{ijk}B_k^\prime(x_i)
+$$
+
+<!-- derivation -->
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}}=\begin{bmatrix}\frac{\partial \mathcal{L}}{\partial x_1} & \frac{\partial \mathcal{L}}{\partial x_2} & \cdots & \frac{\partial \mathcal{L}}{\partial x_n}\end{bmatrix}
@@ -234,11 +242,7 @@ $$
 \frac{\partial \mathcal{L}}{\partial x_i}=\frac{\partial \mathcal{L}}{\partial \mathbf{y}}\frac{\partial\mathbf{y}}{\partial x_i}=\begin{bmatrix}\frac{\partial \mathcal{L}}{\partial y_1} & \cdots & \frac{\partial \mathcal{L}}{\partial y_m}\end{bmatrix}\begin{bmatrix}\sum_{k=1}^bw_{i1k}B_k^\prime(x_i)\\\vdots\\\sum_{k=1}^bw_{imk}B_k^\prime(x_i)\end{bmatrix}=\sum_{j=1}^m\frac{\partial \mathcal{L}}{\partial y_j}\sum_{k=1}^bw_{ijk}B_k^\prime(x_i)
 $$
 
-Substituting back we get
-
-$$
-\frac{\partial \mathcal{L}}{\partial \mathbf{x}}=\begin{bmatrix}\sum_{j=1}^m\frac{\partial \mathcal{L}}{\partial y_j}\sum_{k=1}^bw_{1jk}B_k^\prime(x_1)&\cdots&\sum_{j=1}^m\frac{\partial \mathcal{L}}{\partial y_j}\sum_{k=1}^bw_{njk}B_k^\prime(x_n)\end{bmatrix}
-$$
+<!-- derivation -->
 
 Since the input to a layer is the output of the previous layer, we can now simply pass $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}$ as $\frac{\partial \mathcal{L}}{\partial \mathbf{y}}$ for the previous layer. And we are done! In code this is done as follows:
 

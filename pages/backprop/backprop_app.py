@@ -1,4 +1,5 @@
 from dash import Input, Output, State, dcc, html, register_page, callback
+import dash_mantine_components as dmc
 import plotly.graph_objects as go
 import numpy as np
 np.random.seed(1)
@@ -12,15 +13,36 @@ nn_styles = [
 ]
 
 with open('pages/backprop/text.md') as f:
-    text = f.read()
+    text = f.read().split('<!-- derivation -->')
 
 with open('pages/backprop/text_batches.md') as f:
     text_batches = f.read()
 
+def get_md(component: str) -> dcc.Markdown:
+    return dcc.Markdown(component, mathjax=True, link_target='_blank', dangerously_allow_html=True)
+
+def get_accordion(i: int, component: str) -> dmc.Accordion:
+    return dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                children=[
+                    dmc.AccordionControl('Formal Derivation'),
+                    dmc.AccordionPanel(get_md(component))
+                ], 
+                value=str(i))
+        ], 
+        chevronPosition='left'
+    )
+
+components = []
+for i, component in enumerate(text):
+    if i % 2 == 0: components.append(get_md(component))
+    else: components.append(get_accordion(i, component))
+
 register_page(__name__, path='/backprop', name='Backpropagation', order=9, icon='fluent:math-formula-16-regular')
 
 layout = html.Div([
-    dcc.Markdown(text, mathjax=True, link_target='_blank'),
+    *components,
     html.Div([
         html.Label('Activation Function'),
         html.Br(),
@@ -66,7 +88,7 @@ layout = html.Div([
     html.Button('Submit', id='submit'),
     html.Div(id='graph'),
     html.Br(),
-    dcc.Markdown(text_batches, mathjax=True, link_target='_blank')
+    # dcc.Markdown(text_batches, mathjax=True, link_target='_blank')
 ])
 
 @callback(

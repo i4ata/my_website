@@ -1,5 +1,3 @@
-# TODO: ADD THE BANK ACCOUNTS AS WELL MAYBE
-
 import sqlite3
 import pandas as pd
 import plotly.express as px
@@ -8,8 +6,7 @@ import plotly.graph_objects as go
 import numpy as np
 import statsmodels.api as sm
 import os
-from typing import List, Tuple
-from datetime import timedelta, datetime
+from typing import List
 from time import time
 
 con = sqlite3.connect('assets/sebra/sebra.db', check_same_thread=False)

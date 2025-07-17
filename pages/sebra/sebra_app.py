@@ -356,7 +356,7 @@ def pull_pie_sector(code: str) -> Patch:
 
 def highlight_bar(code: str) -> Patch:
     fig = Patch()
-    colors = ['#636efa'] * len(pay_codes)
+    colors = ['#228be6'] * len(pay_codes)
     if code == pies['other_label']: 
         for i in pies['to_remove']: colors[pay_codes.index(i)] = 'red'
     else:
@@ -597,7 +597,7 @@ def enable_finding_clients(accordion: List[str], tab: str, query: str, hidden: b
         .str.upper().str.extract(f'([{bg_letters}])', expand=False).unique()
     )
     nunique_clients = df_queried['CLIENT_ID'].nunique()
-    return False, f'Here you can see payments made by specific organizations. There are {nunique_clients} unique clients. You can filter them first', unique_clients_initials
+    return False, f'Here you can see payments made to specific clients. There are {nunique_clients} unique clients. You can filter them first', unique_clients_initials
 
 @callback(
     Output('individual_org_container', 'hidden'),

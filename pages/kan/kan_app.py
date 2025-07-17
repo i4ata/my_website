@@ -1,4 +1,5 @@
 from dash import Input, Output, State, html, dcc, ALL, register_page, callback, ctx
+import dash_mantine_components as dmc
 import plotly.graph_objects as go
 import dash_cytoscape as cyto
 from plotly.subplots import make_subplots
@@ -14,6 +15,27 @@ with open('pages/kan/text.md') as f:
 with open('assets/kan/nn.pkl', 'rb') as f:
     kan_layers: List[Tuple[np.ndarray, int, int]] = pickle.load(f)
     n_layers = len(kan_layers)
+
+def get_md(component: str) -> dcc.Markdown:
+    return dcc.Markdown(component, mathjax=True, link_target='_blank', dangerously_allow_html=True)
+
+def get_accordion(i: int, component: str) -> dmc.Accordion:
+    return dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                children=[
+                    dmc.AccordionControl('Formal Derivation'),
+                    dmc.AccordionPanel(get_md(component))
+                ], 
+                value=str(i))
+        ], 
+        chevronPosition='left'
+    )
+
+components = []
+for i, component in enumerate(text[1].split('<!-- derivation -->')):
+    if i % 2 == 0: components.append(get_md(component))
+    else: components.append(get_accordion(i, component))
 
 register_page(__name__, path='/kan', name='Kolmogorov-Arnold Networks', order=7, icon='tabler:geometry')
 
@@ -70,7 +92,7 @@ layout = html.Div([
     html.Button('Reset', id='reset_weights'),
     dcc.Graph(id='basis_elements'),
     html.Label(id='error'),
-    dcc.Markdown(text[1], mathjax=True, link_target='_blank', dangerously_allow_html=True),
+    *components,
     dcc.Graph(figure=get_training()),
     dcc.Markdown(text[2], mathjax=True, link_target='_blank',dangerously_allow_html=True),
     cyto.Cytoscape(

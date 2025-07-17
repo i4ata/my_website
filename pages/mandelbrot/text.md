@@ -26,7 +26,7 @@ Some example trajectories are shown below:
 
 <br>It can be seen that $c=-1+0i$ oscillates between 2 values, $c=-0.1-0.75i$ exhibits a chaotic behavior but still remains bounded, whereas the magnitude of $c=-1-1i$ quickly explodes to very high values.
 
-## Code
+<!-- code -->
 
 The set is generated as follows:
 
@@ -117,8 +117,10 @@ That's it!
     return M
 ```
 
+<!-- code -->
+
 This project utilizes vectorized operations from NumPy to efficiently update the set by processing all numbers $C$ at the same time. Moreover, numbers that already diverged are discarded, further accelerating the process.
 
 ## Interaction
 
-Below one can interact with the Mandelbrot set. You can zoom in infinitely by inscribing a rectangle or click on the image to see the trajectory of the corresponding number throughout the iterations!
+Below one can interact with the Mandelbrot set. You can **zoom in infinitely by inscribing a square** or **click on the image** to see the trajectory of the corresponding number throughout the iterations!

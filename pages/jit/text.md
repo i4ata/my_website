@@ -267,7 +267,7 @@ $$
 x_{i+1}\gets x_i-\frac{f(x_i)}{f^\prime(x_i)}
 $$
 
-Essentially, $x_{i+1}$ is the point where the tangent line to $f$ at $x_i$ crosses the $x$-axis, which turns out to be a very good heuristic. The method is usually very efficient as it takes only a few iterations to reach a guess $x^*$ such that $f(x^*)\approx0$. For finding the roots of a multidimensional function $g: \mathbb{R^n}\to\mathbb{R^m}$, the update rule of the Newton method generalizes to:
+Essentially, $x_{i+1}$ is the point where the tangent line to $f$ at $x_i$ crosses the $x$-axis, which turns out to be a very good heuristic. The method is usually very efficient as it takes only a few iterations to reach a guess $x^*$ such that $f(x^*)\approx0$. For finding the roots of a multidimensional function $g: \mathbb{R}^n\to\mathbb{R}^m$, the update rule of the Newton method generalizes to:
 
 $$
 x_{i+1}\gets x_i - J^+g(x_i)

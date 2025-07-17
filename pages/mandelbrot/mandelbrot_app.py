@@ -1,6 +1,7 @@
 """This script launches an interactive environment for the Mandelbro Set"""
 
 from dash import dcc, html, Input, Output, State, ctx, callback, register_page
+import dash_mantine_components as dmc
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -11,16 +12,37 @@ from pages.mandelbrot.mandelbrot import mandelbrot_set
 from utils import slider, updatemenu
 
 with open('pages/mandelbrot/text.md') as f:
-    text = f.read()
+    text = f.read().split('<!-- code -->')
 
 register_page(__name__, path='/mandelbrot', name='The Mandelbrot Set', order=10, icon='fluent-emoji:infinity')
+
+def get_md(component: str) -> dcc.Markdown:
+    return dcc.Markdown(component, mathjax=True, link_target='_blank', dangerously_allow_html=True)
+
+def get_accordion(i: int, component: str) -> dmc.Accordion:
+    return dmc.Accordion(
+        children=[
+            dmc.AccordionItem(
+                children=[
+                    dmc.AccordionControl('Python'),
+                    dmc.AccordionPanel(get_md(component))
+                ], 
+                value=str(i))
+        ], 
+        chevronPosition='left'
+    )
+
+components = []
+for i, component in enumerate(text):
+    if i % 2 == 0: components.append(get_md(component))
+    else: components.append(get_accordion(i, component))
 
 # LAYOUT OF THE APP
 layout = html.Div([
 
     # The text
-    dcc.Markdown(text, mathjax=True, link_target='_blank', dangerously_allow_html=True),
-    
+    *components,
+
     # Parameters
     html.Div([
         html.Label('Height:'), html.Br(),

@@ -110,6 +110,12 @@ Using this, we need to find the derivative of the error with respect to the weig
 The derivative of the loss $\mathcal{L}$ with respect to the weights $\mathbf{W}$, i.e. $\frac{\partial \mathcal{L}}{\partial \mathbf{W}}\in\mathbb{R}^{n\times m}$ is defined as:
 
 $$
+\frac{\partial \mathcal{L}}{\partial \mathbf{W}}=\mathbf{x}^\top\frac{\partial\mathcal{L}}{\partial\mathbf{y}}
+$$
+
+<!-- derivation -->
+
+$$
 \frac{\partial \mathcal{L}}{\partial \mathbf{W}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial w_{11}} & \cdots & \frac{\partial \mathcal{L}}{\partial w_{1m}} \\ \vdots & \ddots & \vdots \\ \frac{\partial \mathcal{L}}{\partial w_{n1}} & \cdots & \frac{\partial \mathcal{L}}{\partial w_{nm}}\end{bmatrix}
 $$
 
@@ -125,7 +131,7 @@ $$
 \frac{\partial \mathbf{y}}{\partial w_{ji}}=\begin{bmatrix}\frac{\partial y_1}{\partial w_{ji}} \\ \vdots \\ \frac{\partial y_m}{\partial w_{ji}} \end{bmatrix}
 $$
 
-From the forward pass formula we can see that 
+From the forward pass formula we can see that
 
 $$
 \frac{\partial y_k}{\partial w_{ji}}=\begin{cases} x_j & \text{if } i = k \\ 0 & \text{otherwise}\end{cases}
@@ -143,7 +149,9 @@ $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{W}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial y_1}x_1 & \cdots & \frac{\partial \mathcal{L}}{\partial y_m}x_1 \\ \vdots & \ddots & \vdots \\ \frac{\partial \mathcal{L}}{\partial y_1}x_n & \cdots & \frac{\partial \mathcal{L}}{\partial y_m}x_n \end{bmatrix} = \begin{bmatrix} x_1 \\ \vdots \\ x_n \end{bmatrix}\begin{bmatrix} \frac{\partial \mathcal{L}}{\partial y_1} & \cdots & \frac{\partial \mathcal{L}}{\partial y_m} \end{bmatrix}=\mathbf{x}^\top\frac{\partial \mathcal{L}}{\partial \mathbf{y}}
 $$
 
-Now that we know $\frac{\partial \mathcal{L}}{\partial \mathbf{W}}$, we can update the weights by taking a small step in the opposite direction as follows:
+<!-- derivation -->
+
+Now we can update the weights by taking a small step in the opposite direction as follows:
 
 $$
 \mathbf{W}\gets\mathbf{W}-\alpha\frac{\partial \mathcal{L}}{\partial \mathbf{W}}
@@ -152,6 +160,12 @@ $$
 #### The derivative of the error with respect to the bias
 
 The derivative of the loss $\mathcal{L}$ with respect to the bias $\mathbf{b}$, i.e. $\frac{\partial \mathcal{L}}{\partial \mathbf{b}}\in\mathbb{R}^{1\times m}$ is defined as
+
+$$
+\frac{\partial \mathcal{L}}{\partial \mathbf{b}}=\frac{\partial \mathcal{L}}{\partial \mathbf{y}}
+$$
+
+<!-- derivation -->
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial b_1} & \frac{\partial \mathcal{L}}{\partial b_2} & \cdots & \frac{\partial \mathcal{L}}{\partial b_m} \end{bmatrix}
@@ -187,7 +201,9 @@ $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{b}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial y_1} & \cdots & \frac{\partial \mathcal{L}}{\partial y_m} \end{bmatrix} = \frac{\partial \mathcal{L}}{\partial \mathbf{y}}
 $$
 
-Now that we know $\frac{\partial \mathcal{L}}{\partial \mathbf{b}}$, we can update the bias by taking a small step in the opposite direction as follows:
+<!-- derivation -->
+
+Now we can update the bias by taking a small step in the opposite direction as follows:
 
 $$
 \mathbf{b}\gets\mathbf{b}-\alpha\frac{\partial \mathcal{L}}{\partial \mathbf{b}}
@@ -196,6 +212,12 @@ $$
 #### The derivative of the error with respect to the input
 
 The derivative of the loss $\mathcal{L}$ with respect to the input $\mathbf{x}$, i.e. $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}\in\mathbb{R}^{1\times n}$ is defined as
+
+$$
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}}=\frac{\partial\mathcal{L}}{\partial\mathbf{y}}\mathbf{W}^\top
+$$
+
+<!-- derivation -->
 
 $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial x_1} & \cdots & \frac{\partial \mathcal{L}}{\partial x_n} \end{bmatrix}
@@ -230,6 +252,8 @@ Substituting back to $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}$, we get
 $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \begin{bmatrix} \sum_{i=1}^m\frac{\partial \mathcal{L}}{\partial y_i}w_{1i} & \cdots & \sum_{i=1}^m\frac{\partial \mathcal{L}}{\partial y_i}w_{ni} \end{bmatrix} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial y_1} & \cdots \frac{\partial \mathcal{L}}{\partial y_m} \end{bmatrix}\begin{bmatrix}w_{11} & \cdots & w_{n1} \\ \vdots & \ddots & \vdots \\ w_{1m} & \cdots & w_{nm} \end{bmatrix}=\frac{\partial \mathcal{L}}{\partial \mathbf{y}}\mathbf{W}^\top
 $$
+
+<!-- derivation -->
 
 Now that we know $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}$, we also know $\frac{\partial \mathcal{L}}{\partial \mathbf{y}}$ of the previous layer since the current layer's input *is* the previous layer's output. That way we can continue training!
 
@@ -302,6 +326,12 @@ class Activation(Layer):
 Since the activation layer has no learnable parameters, we only need to find the derivative of the loss $\mathcal{L}$ with respect to the input $\mathbf{x}$, i.e. $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}\in\mathbb{R}^{1\times n}$, and pass it to the previous layer. It is defined as
 
 $$
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}}=\frac{\partial\mathcal{L}}{\partial\mathbf{y}}\odot f^\prime(\mathbf{x})
+$$
+
+<!-- derivation -->
+
+$$
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial x_1} & \frac{\partial \mathcal{L}}{\partial x_2} & \cdots & \frac{\partial \mathcal{L}}{\partial x_n} \end{bmatrix}
 $$
 
@@ -335,6 +365,8 @@ $$
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial y_1}f^\prime(x_i) & \cdots & \frac{\partial \mathcal{L}}{\partial y_n}f^\prime(x_n) \end{bmatrix} = \frac{\partial \mathcal{L}}{\partial \mathbf{y}}\odot f^\prime(\mathbf{x})
 $$
 
+<!-- derivation -->
+
 Now, $\frac{\partial \mathcal{L}}{\partial \mathbf{x}}$ is passed to the previous layer, similarly to the linear layer.
 
 In code:
@@ -362,7 +394,13 @@ $$
 \text{MSE}(\mathbf{y},\hat{\mathbf{y}})=\frac{1}{n}\sum_{i=1}^n(y_i-\hat{y}_i)^2
 $$
 
-We need to find the derivative of the loss $\mathcal{L}$, computed by $\text{MSE}$, with respect to the predictions $\hat{\mathbf{y}}$, defined as
+Its derivative with respect to the predictions $\hat{\mathbf{y}}$, is defined as
+
+$$
+\frac{\partial\mathcal{L}}{\partial\hat{\mathbf{y}}}=\frac{2}{n}\left(\hat{\mathbf{y}}-\mathbf{y}\right)
+$$
+
+<!-- derivation -->
 
 $$
 \frac{\partial \mathcal{L}}{\partial \hat{\mathbf{y}}} = \begin{bmatrix} \frac{\partial \mathcal{L}}{\partial \hat{y}_1} & \cdots & \frac{\partial \mathcal{L}}{\partial \hat{y}_n} \end{bmatrix}
@@ -385,6 +423,8 @@ Substituting back to $\frac{\partial \mathcal{L}}{\partial \hat{\mathbf{y}}}$, w
 $$
 \frac{\partial \mathcal{L}}{\partial \hat{\mathbf{y}}} = \begin{bmatrix} \frac{2}{n}(\hat{y}_1-y_1) & \cdots & \frac{2}{n}(\hat{y}_n-y_n) \end{bmatrix} = \frac{2}{n}(\hat{\mathbf{y}}-\mathbf{y})
 $$
+
+<!-- derivation -->
 
 The result is $\frac{\partial \mathcal{L}}{\partial \mathbf{y}}$ of the final layer.
 
