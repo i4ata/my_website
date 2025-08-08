@@ -16,3 +16,6 @@ graphviz
 lifelines
 seaborn
 scikit-survival
+pandas
+requests
+dotenv

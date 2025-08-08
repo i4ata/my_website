@@ -26,8 +26,8 @@ df_destinations: Optional[pd.DataFrame] = None
 def load_page(pathname: Optional[str]):
     global df_flights, df_airlines, df_destinations
 
-    # engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
-    engine = create_engine('mysql+pymysql://root:@localhost:3306/schiphol')
+    engine = create_engine('mysql+pymysql://root:@flights_sql_server/schiphol')
+    # engine = create_engine('mysql+pymysql://root:@localhost:3306/schiphol')
 
     read_sql_table = lambda table, index: pd.read_sql(f'select * from {table}', engine, index_col=index)
 

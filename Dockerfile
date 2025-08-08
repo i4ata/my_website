@@ -11,10 +11,13 @@ RUN apt-get update && apt-get install -y \
     libopenblas-dev \
     liblapack-dev \
     libatlas-base-dev \
+    cron \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install -r requirements.txt
+RUN echo "0 3 * * * python -m pages.schiphol.etl.etl_script" | crontab -
 
 COPY . /app
 EXPOSE 5000
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "my_website:server"]
+RUN chmod +x /app/start.sh
+CMD /app/start.sh

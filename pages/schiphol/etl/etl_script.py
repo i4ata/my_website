@@ -9,7 +9,7 @@ import time
 from tqdm import tqdm
 
 load_dotenv()
-connection_str = 'mysql+mysqldb://root:@flights_sql_server/schiphol'
+connection_str = 'mysql+pymysql://root:@flights_sql_server/schiphol'
 
 def get_airports_coords() -> pd.DataFrame:
     url = 'https://data.opendatasoft.com/api/explore/v2.1/catalog/datasets/airports-code@public/records'
@@ -68,3 +68,11 @@ def extract(endpoint: Literal['flights', 'destinations', 'airlines', 'aircraftty
 
 def load(df: pd.DataFrame, engine: sqlalchemy.engine) -> None:
     df.to_sql('flights', engine, if_exists='append', index=False)
+
+if __name__ == '__main__':
+    print('RUNNING THE SCRIPT')
+    engine = sqlalchemy.create_engine(connection_str)
+    with engine.connect() as con: con.execute(sqlalchemy.text('delete from flights'))
+    flights_data = extract()['flights']
+    flights_df = process_flights(flights_data)
+    load(flights_df, engine)

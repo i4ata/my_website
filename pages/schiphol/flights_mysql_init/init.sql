@@ -40,7 +40,6 @@ into table destinations
 fields terminated by ',' optionally enclosed by '"'
 lines terminated by '\n'
 ignore 1 rows
--- Weird ass chatgpt hack, idk why but when the lines end with ,,, this fails
 (country,iata,publicName,city,@latitude, @longitude)
 SET
     latitude = NULLIF(@latitude, ''),
