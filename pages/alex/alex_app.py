@@ -19,7 +19,7 @@ con = sqlite3.connect(os.path.join('pages', 'alex', 'fwp.db'), check_same_thread
 
 teams = pd.read_sql('select * from team', con=con, index_col='id')
 
-register_page(__name__, path='/spartans', name='Spartans', order=20, icon='fluent:math-formula-16-regular')
+register_page(__name__, path='/spartans', name='Spartans', order=20, icon='noto:soccer-ball')
 
 layout = html.Div([
     html.H1('Opponent Analysis (Combined Counties League Division One)'),
